@@ -117,6 +117,9 @@ isiTimeFrames = round(isiTimeSecs ./ ifi);
 stimulusTimeSecs = repmat([.3], blocks, numTrialsPerBlock);
 stimulusTimeFrames = round(stimulusTimeSecs ./ ifi);
 
+%Number of frames to wait before re-drawing
+waitframes = 1;
+
 %--------------------
 % The Response Matrix
 %--------------------
@@ -149,32 +152,99 @@ for block = 1:blocks
             KbStrokeWait;
         end
         
-        %Put fixation cross onto screen and get the timestamp at the beginning of
-        %the first frame
+        %Put fixation cross onto screen (first trial only)
+        
+        if  trial == 1
+            DrawFormattedText(window, '+', 'center', 'center', white);
+            vbl = Screen('Flip', window);
+
+            %Play fixation point for the rest of the presentation interval (-1
+            %frame because we played the fixation point at frame 1)
+            for frame = 1:isiTimeFrames(block, trial) - 1
+
+                %Draw fixation point
+                DrawFormattedText(window, '+', 'center', 'center', white);
+
+                %Flip to screen
+                vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
+            end
+        end 
+        
+         %Setting properties Matrix for the gabor being played this trial
+        propertiesMat = [stimMatShuffled(5, trial, block), stimMatShuffled(7, trial, block), sigma, stimMatShuffled(3, trial, block), stimMatShuffled(4, trial, block), 0, 0, 0];
+       
+        %Getting start time and drawing gabor
+        tStart = GetSecs;
+        Screen('DrawTextures', window, gabortex, [], [], stimMatShuffled(2, trial, block), [], [], [], [],...
+             kPsychDontDoRotation, propertiesMat');
+        vbl = Screen('Flip', window);
+        
+        %Play Gabor patch for the rest of the presentation interval (-1
+        %frame because we played the fixation point at frame 1)
+        for frame = 1:stimulusTimeFrames(block, trial) - 1
+            %Drawing Texture
+            Screen('DrawTextures', window, gabortex, [], [], stimMatShuffled(2, trial, block), [], [], [], [],...
+            kPsychDontDoRotation, propertiesMat');
+        
+            %flipping to screen
+            vbl = Screen('Flip', window);
+            
+            %detecting response
+            KeyIsDown = KbCheck;
+            if KeyIsDown == 1
+                respMade = true;
+                tEnd = GetSecs;
+                rt = tEnd - tStart;        
+            end
+        end
+        %Interstimulus window where participant can make a response about
+        %the stimulus just played
         DrawFormattedText(window, '+', 'center', 'center', white);
         vbl = Screen('Flip', window);
-         
+
         %Play fixation point for the rest of the presentation interval (-1
         %frame because we played the fixation point at frame 1)
         for frame = 1:isiTimeFrames(block, trial) - 1
-            
+
             %Draw fixation point
             DrawFormattedText(window, '+', 'center', 'center', white);
-            
+
             %Flip to screen
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
-        end
-        
-        %%%%%%%%%%% Where last left off: Playing Gabor Patches. Need to dig
-        %%%%%%%%%%% into DrawTextures function and how to get it to take my
-        %%%%%%%%%%% stimMatrixShuffled's parameters. 
-        %playing Gabor patch
-        Screen('DrawTextures', window, gabortex, [], [], orientation, [], [], [], [],...
-    kPsychDontDoRotation, propertiesMat');
-        
-        for frame = 1:stimTimeFrames(block, trial)
             
+            %detecting response
+            KeyIsDown = KbCheck;
+            if KeyIsDown == 1
+                respMade = true;
+                tEnd = GetSecs;
+                rt = tEnd - tStart;
+            end
+        end
+         
+        %saving response to respMatrix
+        %Gabor #
+        respMatrix(1, trial, block) = stimMatShuffled(1, trial, block);
+        %1 or 0 for whether or not a response was made
+        if respMade == true
+            respMatrix(2, trial, block) = 1;
+        else
+            respMatrix(2, trial, block) = 0;
         end
         
+        %RT if resp made or 0 if no resp made
+        if respMade == true
+            respMatrix(3, trial, block) = rt;
+        else
+            respMatrix(3, trial, block) = 0;
+        end    
     end
 end
+
+%end of experiment screen
+DrawFormattedText(window, 'Experiment Over! Press any button to escape', 'center', 'center', black);
+Screen('Flip', window);
+
+%closes all the windows upon key press
+KbStrokeWait;
+close all;
+sca;
