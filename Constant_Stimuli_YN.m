@@ -30,7 +30,7 @@ ifi = Screen('GetFlipInterval', window);
 
 %Set the text font and size
 Screen('TextFont', window, 'Ariel');
-Screen('TextSize', window, 50);
+Screen('TextSize', window, 40);
 
 %Query the maximum priority level
 topPriorityLevel = MaxPriority(window);
@@ -39,7 +39,7 @@ topPriorityLevel = MaxPriority(window);
 [xCenter, yCenter] = RectCenter(windowRect);
 
 %Set the blend function for the screen
-Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');
+%Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');
 
 %--------------------
 % Initial Gabor-Setup
@@ -65,13 +65,13 @@ gabortex = CreateProceduralGabor(window, gaborDimPix, gaborDimPix, [], ...
 % Stimulus and Experiment Parameters
 %--------------------
 %number of blocks
-blocks = 2;
+blocks = 1;
 
 %number of trials per condition
-trialsPerCondition = 2;
+trialsPerCondition = 5;
 
 %number of conditions (gabors)
-numConditions = 2;
+numConditions = 3;
 
 %number of trials per block
 numTrialsPerBlock = trialsPerCondition * numConditions; 
@@ -88,8 +88,9 @@ stimCondBase = transpose([1 2 3 4 5 6 7]);
 stimCondMat = repmat(stimCondBase, 1, numConditions); 
 
 %SETTING PARAMETERS FOR EACH GABOR
-stimCondMat(:,1) = [1 0 1 1 0 5 stimCondMat(6, 1)/gaborDimPix]; %Gabor #1
-stimCondMat(:,2) = [2 0 .5 1 0 5 stimCondMat(6, 2)/gaborDimPix]; %Gabor #2
+stimCondMat(:,1) = [1 0 .0005 1 0 5 stimCondMat(6, 1)/gaborDimPix]; %Gabor #1
+stimCondMat(:,2) = [2 0 .00055 1 0 5 stimCondMat(6, 2)/gaborDimPix]; %Gabor #2
+stimCondMat(:,3) = [3 0 .0006 1 0 5 stimCondMat(6, 3)/gaborDimPix]; %Gabor #3
 
 %Expanding stimulusConditionsMatrix to stimulusMatrix (what experimental
 %loop will iterate through to get information about stimulus)
@@ -116,6 +117,11 @@ isiTimeFrames = round(isiTimeSecs ./ ifi);
 %is being played
 stimulusTimeSecs = repmat([.3], blocks, numTrialsPerBlock);
 stimulusTimeFrames = round(stimulusTimeSecs ./ ifi);
+
+%Generating prestimulus presentation interval where fixation cross
+%dissapears
+psiTimeSecs = (500 + 500 * rand(blocks, numTrialsPerBlock)) /1000;
+psiTimeFrames = round(psiTimeSecs ./ ifi);
 
 %Number of frames to wait before re-drawing
 waitframes = 1;
@@ -153,7 +159,6 @@ for block = 1:blocks
         end
         
         %Put fixation cross onto screen (first trial only)
-        
         if  trial == 1
             DrawFormattedText(window, '+', 'center', 'center', white);
             vbl = Screen('Flip', window);
@@ -169,6 +174,12 @@ for block = 1:blocks
                 vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             end
         end 
+        
+        %Removing fixation cross
+        for frame =1:psiTimeFrames(block, trial)
+            Screen('FillRect', window, grey);
+            vbl = Screen('Flip', window);
+        end
         
          %Setting properties Matrix for the gabor being played this trial
         propertiesMat = [stimMatShuffled(5, trial, block), stimMatShuffled(7, trial, block), sigma, stimMatShuffled(3, trial, block), stimMatShuffled(4, trial, block), 0, 0, 0];
@@ -197,6 +208,7 @@ for block = 1:blocks
                 rt = tEnd - tStart;        
             end
         end
+        
         %Interstimulus window where participant can make a response about
         %the stimulus just played
         DrawFormattedText(window, '+', 'center', 'center', white);
@@ -248,3 +260,35 @@ Screen('Flip', window);
 KbStrokeWait;
 close all;
 sca;
+
+%--------------------
+% Plotting Psychometric Function
+%--------------------
+%Creating data matrix to store X and Y axis vectors
+data = zeros(2, numConditions);
+
+%Setting X axis
+for column = 1:numConditions
+    data(1, column) = stimMat(3, column);
+end
+
+%Pooling across all trials and blocks for total number of yes responses for
+%each orientation
+for block = 1:blocks
+    %iterate through stimMatShuffled/respMatrix 
+    for i = 1:numTrialsPerBlock
+       %iterate through data matrix
+       for j =1:numConditions
+           if data(1, j) == stimMatShuffled(3, i, block) && respMatrix(2, i) == 1
+               data(2, j) = data(2,j) + 1;
+           end
+       end 
+    end
+end
+
+%Plotting using data matrix [X;Y]
+figure;
+plot(data(1,:), data(2,:)/(trialsPerCondition*block));
+xlabel('Contrast');
+ylabel('Performance');
+title('Psychometric function');
