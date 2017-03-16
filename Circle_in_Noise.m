@@ -35,43 +35,74 @@ topPriorityLevel = MaxPriority(window);
 %Get the center coordinate of the window
 [xCenter, yCenter] = RectCenter(windowRect);
 
-%--------------------
-% Drawing the Circle
-%--------------------
-circleColor = [0 0 0];
-circleXpos = xCenter;
-circleYpos = yCenter;
-circleSizePix = 250;
-circleRadius = 250/2;
+%random seed 
+rand('seed', sum(100 * clock));
 
-Screen('DrawDots', window, [circleXpos circleYpos], circleSizePix, circleColor, [], 3);
-Screen('Flip', window);
+% Set up alpha-blending for smooth (anti-aliased) lines
+Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');
 
 %--------------------
-% Window Matrix
+% Creating Texture
 %--------------------
-%Matrix to hold 0s or 1s for each pixel on the screen. 0 for no stimulus
-%present in pixel, 1 for stimulus present in pixel
+%coherence value
+coherence = 0.5;
 
-%zero matrix size of window
-windowMat = zeros(windowRect(4), windowRect(3));
+%apperture window properties
+appX = 300; %app size
+appY = 300;
+appXCenter = appX/2;
+appYCenter = appY/2;
+appRadius = appX/2;
 
-%Filling stimulus region of windowMat with 1's
-for y = 1:windowRect(4)
-    for x = 1:windowRect(3)
-        %if windowMat index is within the circle drawn
-        if ((x - circleXpos)^2 + (y - circleYpos)^2) < circleRadius^2
-            %set the windowMat value at that index = to 1
-            windowMat(y,x) = 1;           
+%circle stimulus properties
+stimRadius = 50;
+stimXPos = appXCenter;
+stimYPos = appYCenter;
+stimColor = white;
+
+%defining windowMat as random noise within a circle with centered in
+%apperture with radius appX/2
+windowMat = repmat(grey, appY, appX);
+for y = 1:appY
+    for x = 1:appX
+        %if pixel is not in stimulus
+        if ((x - appXCenter)^2 + (y - appYCenter)^2) < appRadius^2
+           %set value to noise 
+           windowMat(y,x) = rand(1);
         end 
-    end
-    
+    end 
+end
+
+
+%Drawing circle into noise
+for y = 1:appY
+    for x = 1:appX
+        %if pixel is not in stimulus
+        if ((x - stimXPos)^2 + (y - stimYPos)^2) < stimRadius^2
+            %coherence % chance to set pixelValue to color
+            if rand(1) <= coherence
+                windowMat(y,x) = stimColor;
+            end
+        end 
+    end 
 end
 
 %--------------------
-% Drawing Noise
+% Drawing Texture
 %--------------------
+%create texture object
+noiseTexture = Screen('MakeTexture', window, windowMat);
 
-for y = 1:windowRect(4)
-    for x = 1:windowRect(3)
+%defining area texture will be displayed
+xPos = xCenter;
+yPos = yCenter;
+baseRect = [0 0 appX appY];
+
+%Centering texture in center of window
+rectCenter = CenterRectOnPointd(baseRect, xPos, yPos);
+
+%Drawing and flipping
+Screen('DrawTextures', window, noiseTexture, [], rectCenter, [], [], [], []);
+Screen('Flip', window);
+
 
