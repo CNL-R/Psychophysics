@@ -35,28 +35,11 @@ topPriorityLevel = MaxPriority(window);
 %Get the center coordinate of the window
 [xCenter, yCenter] = RectCenter(windowRect);
 
-%Set the blend function for the screen
-%Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');
+%random seed 
+rand('seed', sum(100 * clock));
 
-%--------------------
-% Initial Gabor-Setup
-%--------------------
-%Dimension of the region where will draw Gabor in pixels
-gaborDimPix = windowRect(4)/2;
-
-%Sigma of Gaussian
-sigma = gaborDimPix/7;
-
-% Build a procedural gabor texture (Note: to get a "standard" Gabor patch
-% we set a grey background offset, disable normalisation, and set a
-% pre-contrast multiplier of 0.5.
-% For full details see:
-% https://groups.yahoo.com/neo/groups/psychtoolbox/conversations/topics/9174
-backgroundOffset = [0.5 0.5 0.5 0.0];
-disableNorm = 1;
-preContrastMultiplier = 0.5;
-gabortex = CreateProceduralGabor(window, gaborDimPix, gaborDimPix, [], ... 
-    backgroundOffset, disableNorm, preContrastMultiplier);
+% Set up alpha-blending for smooth (anti-aliased) lines
+Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');
 
 %--------------------
 % Stimulus and Experiment Parameters
@@ -64,44 +47,147 @@ gabortex = CreateProceduralGabor(window, gaborDimPix, gaborDimPix, [], ...
 %number of blocks
 blocks = 1;
 
-%number of trials per condition
-trialsPerCondition = 5;
+%number sets per block
+setsPerBlock = 1;
 
-%number of conditions (gabors)
-numConditions = 3;
+%number of conditions (coherence values)
+numConditions = 8;
 
-%number of trials per block
-numTrialsPerBlock = trialsPerCondition * numConditions; 
+%matrix for storing stimulus ID# and coherence values for each stimuli
+%defined
+% 1 - stimulus number
+% 2 - stimulus coherence
+stimCondMat = repmat(1:numConditions, 2, 1);
 
-%matrix for storing stimuli conditions information
-% 1 - Gabor #
-% 2 - Orientation
-% 3 - Contrast
-% 4 - Aspect Ratio
-% 5 - Phase 
-% 6 - Number of cycles
-% 7 - frequency 
-stimCondBase = transpose([1 2 3 4 5 6 7]); 
-stimCondMat = repmat(stimCondBase, 1, numConditions); 
+%Matrix to hold how many times each stimuli defined will be played per set.
+%Default value is 1 time. 
+condFreqMat = zeros(1, numConditions);
+condFreqMat(1, :) = 1;
 
-%SETTING PARAMETERS FOR EACH GABOR
-stimCondMat(:,1) = [1 0 .0005 1 0 5 stimCondMat(6, 1)/gaborDimPix]; %Gabor #1
-stimCondMat(:,2) = [2 0 .00055 1 0 5 stimCondMat(6, 2)/gaborDimPix]; %Gabor #2
-stimCondMat(:,3) = [3 0 .0006 1 0 5 stimCondMat(6, 3)/gaborDimPix]; %Gabor #3
+%Setting coherence for each stimuli and assigning stimuli frequency. 
+%first row - stimulus ID#
+%second row - coherence value 
+%condFreqMat(1,n) - how many times each stimulus is played per set. Default
+%is 1
+stimCondMat(2,1) = 0;
+condFreqMat(1,1) = 3; % three catch trials per set of stimuli. default is 1
 
-%Expanding stimulusConditionsMatrix to stimulusMatrix (what experimental
-%loop will iterate through to get information about stimulus)
-stimMat = repmat(stimCondMat, 1, trialsPerCondition, blocks);
+stimCondMat(2,2) = 0.05;
+stimCondMat(2,3) = 0.1;
+stimCondMat(2,4) = 0.2;
+stimCondMat(2,5) = 0.5;
+stimCondMat(2,6) = 0.075;
+stimCondMat(2,7) = 0.025;
+stimCondMat(2,8) = 0.01;
 
-%Randomizing stimulusMatrix. stimMatShuffled will be the matrix used by the
-%experimental loop to get parameters for the Gabor being created
-rand('seed', sum(100 * clock));
+%number of extra stimuli (deviations from default of 1 in condFreqMat)
+numExtraStim = sum(condFreqMat) - numel(condFreqMat);
+
+%number of trials per block.
+numTrialsPerBlock = setsPerBlock * (numConditions + numExtraStim); 
+
+%Expanding stimulusConditionsMatrix to setMatrix, which will be later
+%expanded into stimulusMatrix (the matrix which will be shuffled and then
+%used to generate textures for our stimuli)
+%Creating setMat from copy of stimCondMat
+setMat = stimCondMat;
+
+%adding extra stimuli from condFreqMat to setMat
+for i = 1:numConditions
+    %setting counter for index of setMat
+    indexCounter = 0;
+    
+    %setting counter for number of extra stimulus
+    extraNumCounter = condFreqMat(1,i);
+    
+    %while there are extra stims --> expand setMat
+    while extraNumCounter > 1;
+        %expanding setMat
+        indexCounter = indexCounter + 1;
+        setMat(1, numConditions + indexCounter) = stimCondMat(1, i);
+        setMat(2, numConditions + indexCounter) = stimCondMat(2, i);
+        
+        %decrementing extraNumCounter
+        extraNumCounter = extraNumCounter - 1;
+    end
+    
+end
+
+%creating stimMat from setMat. stimMat will be shuffled and then used to
+%create textures for our stimuli. 
+stimMat = repmat(setMat, 1, setsPerBlock, blocks);
+
+%Randomizing stimulusMatrix. stimMatShuffled will be the matrix used to
+%create textures for each of the stimuli
 stimMatShuffled = [];
 for block = 1:blocks
-    %rand('seed', sum(100 * clock));
     shuffler = Shuffle(1:numTrialsPerBlock);
     stimMatShuffled(:,:,block) = stimMat(:,shuffler,block);
 end 
+
+%--------------------
+% Creating Textures for Stimuli
+%--------------------
+%apperture window properties
+appX = 300; %app size
+appY = 300;
+appXCenter = appX/2;
+appYCenter = appY/2;
+appRadius = appX/2;
+
+%circle stimulus properties
+stimRadius = 50;
+stimXPos = appXCenter;
+stimYPos = appYCenter;
+stimColor = white;
+
+%Matrix to hold textures
+texMat = zeros(appY,appX,numConditions);
+
+%defining appMat as random noise within a circle centered in
+%apperture with radius appX/2
+appMat = repmat(grey, appY, appX);
+for y = 1:appY
+    for x = 1:appX
+        %if pixel is in circle defined by (x-appXCenter)^2 + (y -
+        %appYCenteR)^2 < appRadius^2
+        if ((x - appXCenter)^2 + (y - appYCenter)^2) < appRadius^2
+            %set value to noise values between 0 and 1
+            appMat(y,x) = rand(1);
+        end
+    end
+end
+  
+%loop to draw circle with different coherence values for each stimulus type
+%for each stim condition
+for stimType = 1:numConditions
+    windowMat = appMat;
+    %Drawing circle into noise
+    for y = 1:appY
+        for x = 1:appX
+            %if pixel is within the circle that defines the size of our dot
+            %stimulus 
+            if ((x - stimXPos)^2 + (y - stimYPos)^2) < stimRadius^2
+                %coherence % chance to set pixelValue to stimColor
+                if rand(1) <= stimCondMat(:,stimType);
+                    windowMat(y,x) = stimColor;
+                end
+            end
+        end
+    end
+    %create texture and place into textureMatrix. textureMatrix will be
+    %used by experimental loop to draw stimuli. 
+    noiseTexture = Screen('MakeTexture', window, windowMat);
+    texMat(stimType) = noiseTexture;
+end
+
+%defining area the texture will be displayed
+xPos = xCenter;
+yPos = yCenter;
+baseRect = [0 0 appX appY];
+
+%Centering texture in center of window
+rectCenter = CenterRectOnPointd(baseRect, xPos, yPos);
 
 %--------------------
 % Timing Information
@@ -110,13 +196,13 @@ end
 isiTimeSecs = (1200 + 2200 * rand(blocks, numTrialsPerBlock)) /1000;
 isiTimeFrames = round(isiTimeSecs ./ ifi);
 
-%Generating intrastimulus interval matrices of 300 ms (how long stimullus
+%Generating intrastimulus interval matrices of 50 ms (how long stimullus
 %is being played
-stimulusTimeSecs = repmat([.3], blocks, numTrialsPerBlock);
+stimulusTimeSecs = repmat(.05, blocks, numTrialsPerBlock);
 stimulusTimeFrames = round(stimulusTimeSecs ./ ifi);
 
-%Generating prestimulus presentation interval where fixation cross
-%dissapears
+%Generating prestimulus presentation interval when fixation cross
+%dissapears (randomly between 500 - 1000 ms)
 psiTimeSecs = (500 + 500 * rand(blocks, numTrialsPerBlock)) /1000;
 psiTimeFrames = round(psiTimeSecs ./ ifi);
 
@@ -126,7 +212,7 @@ waitframes = 1;
 %--------------------
 % The Response Matrix
 %--------------------
-%3D matrix. Row 1 - gabor number . Row 2 - 1 or 0 for detected or not. Row
+%3D matrix. Row 1 - stimulus Coherence . Row 2 - 1 or 0 for detected or not. Row
 %3 - RT if detected. 0 if not detected. Each column is an individual
 %stimulus presentation. Third dimmension is block number
 respMatrix = nan(3, numTrialsPerBlock, blocks);
@@ -137,25 +223,25 @@ respMatrix = nan(3, numTrialsPerBlock, blocks);
 for block = 1:blocks
     for trial = 1:numTrialsPerBlock
         
-        %setting type of stimulus being played to gabor type
-        condNum = stimMatShuffled(1, trial, block);
+        %setting type of stimulus being played to stimulus ID #
+        stimNum = stimMatShuffled(1, trial, block);
         
         %Variable to determine whether or not a response was made
         respMade = false;
         
-          %if first trial, present a start screen and wait for a key press.
+        %if first trial and block 1, present a start screen and wait for a key press.
         if trial == 1 && block == 1
             DrawFormattedText(window, 'Welcome to Allen''s constant stimuli detection task. Press any key to begin.', 'center', 'center', white);
             Screen('Flip', window);
             KbStrokeWait;
-            
+        %else if first trial and not block 1, present an interblock screen and wait for a key press    
         elseif trial == 1 && block ~= 1
             DrawFormattedText(window, ['Finished Block #' num2str(block) - 1 '. Press any key to continue.'], 'center', 'center')
             Screen('Flip', window);
             KbStrokeWait;
         end
         
-        %Put fixation cross onto screen (first trial only)
+        %Put fixation cross onto screen and don't look for userinput(first trial only)
         if  trial == 1
             DrawFormattedText(window, '+', 'center', 'center', white);
             vbl = Screen('Flip', window);
@@ -177,25 +263,20 @@ for block = 1:blocks
             Screen('FillRect', window, grey);
             vbl = Screen('Flip', window);
         end
-        
-         %Setting properties Matrix for the gabor being played this trial
-        propertiesMat = [stimMatShuffled(5, trial, block), stimMatShuffled(7, trial, block), sigma, stimMatShuffled(3, trial, block), stimMatShuffled(4, trial, block), 0, 0, 0];
        
-        %Getting start time and drawing gabor
+        %Getting start time and drawing stimulus
         tStart = GetSecs;
-        Screen('DrawTextures', window, gabortex, [], [], stimMatShuffled(2, trial, block), [], [], [], [],...
-             kPsychDontDoRotation, propertiesMat');
-        vbl = Screen('Flip', window);
+        Screen('DrawTextures', window, texMat(stimNum), [], rectCenter, [], [], [], []);
+        vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
         
-        %Play Gabor patch for the rest of the presentation interval (-1
+        %Play stimulus patch for the rest of the presentation interval (-1
         %frame because we played the fixation point at frame 1)
         for frame = 1:stimulusTimeFrames(block, trial) - 1
             %Drawing Texture
-            Screen('DrawTextures', window, gabortex, [], [], stimMatShuffled(2, trial, block), [], [], [], [],...
-            kPsychDontDoRotation, propertiesMat');
+            Screen('DrawTextures', window, texMat(stimNum), [], rectCenter, [], [], [], []);
         
             %flipping to screen
-            vbl = Screen('Flip', window);
+            vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
             %detecting response
             KeyIsDown = KbCheck;
@@ -218,7 +299,7 @@ for block = 1:blocks
             %Draw fixation point
             DrawFormattedText(window, '+', 'center', 'center', white);
 
-            %Flip to screen
+            %Flip to screen                   
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
             %detecting response
@@ -231,7 +312,7 @@ for block = 1:blocks
         end
          
         %saving response to respMatrix
-        %Gabor #
+        %stimulus #
         respMatrix(1, trial, block) = stimMatShuffled(1, trial, block);
         %1 or 0 for whether or not a response was made
         if respMade == true
@@ -262,30 +343,41 @@ sca;
 % Plotting Psychometric Function
 %--------------------
 %Creating data matrix to store X and Y axis vectors
-data = zeros(2, numConditions);
+data = zeros(3, numConditions);
 
-%Setting X axis
+%Setting X axis to be a vector of coherence values in the order entered
+%into condMatrix
 for column = 1:numConditions
-    data(1, column) = stimMat(3, column);
+    data(1, column) = stimMat(2, column);
 end
 
 %Pooling across all trials and blocks for total number of yes responses for
-%each orientation
+%each coherence
 for block = 1:blocks
     %iterate through stimMatShuffled/respMatrix 
     for i = 1:numTrialsPerBlock
        %iterate through data matrix
        for j =1:numConditions
-           if data(1, j) == stimMatShuffled(3, i, block) && respMatrix(2, i) == 1
+           %if data column corresponds to matching coherence value and there
+           %is a response
+           if data(1, j) == stimMatShuffled(2, i, block) && respMatrix(2, i, block) == 1
+               %count # of responses
                data(2, j) = data(2,j) + 1;
            end
+           %set total number of stimuli played for each coherence
+           data(3, j) = condFreqMat(1,j) .* setsPerBlock * blocks;
        end 
     end
 end
 
-%Plotting using data matrix [X;Y]
+%sorting data by coherence values, ascending order. 
+[~, order] = sort(data(1,:));
+sortedData = data(:, order);
+
+%Plotting using sorted data matrix [X;Y]
 figure;
-plot(data(1,:), data(2,:)/(trialsPerCondition*block));
-xlabel('Contrast');
+psychFunction = plot(sortedData(1,:), sortedData(2,:)./(data(3,:)),'.-');
+xlabel('Coherence');
 ylabel('Performance');
 title('Psychometric function');
+
