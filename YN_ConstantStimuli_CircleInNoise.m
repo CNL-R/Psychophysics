@@ -51,21 +51,24 @@ blocks = 4;
 trialsPerCondition = 5;
 
 %number of conditions (coherence values)
-numConditions = 10;
-
-%number of trials per block
-numTrialsPerBlock = trialsPerCondition * numConditions; 
-
-%number of trials total
-numTrials = numTrialsPerBlock * blocks;
+numConditions = 8;
 
 %matrix for storing stimuli conditions information
 % 1 - stimulus number
 % 2 - stimulus coherence
 stimCondMat = repmat(1:numConditions, 2, 1);
 
-%Setting coherence for each stimuli
+%Matrix to hold how many times each stimuli will be played 
+condFreqMat = zeros(1, numConditions);
+condFreqMat(1, :) = 1;
+
+%Setting coherence for each stimuli and assigning stimuli frequency. 
+%first row - stimulus number. Assign a different stim number for different
+%coherences. Use same number for multiple stim with same coherence. 
+%second row - coherence value 
 stimCondMat(2,1) = 0;
+condFreqMat(1,1) = 3; % three catch trials per set of stimuli. 
+
 stimCondMat(2,2) = 0.05;
 stimCondMat(2,3) = 0.1;
 stimCondMat(2,4) = 0.2;
@@ -73,12 +76,41 @@ stimCondMat(2,5) = 0.5;
 stimCondMat(2,6) = 0.075;
 stimCondMat(2,7) = 0.025;
 stimCondMat(2,8) = 0.01;
-stimCondMat(2,9) = 0;
-stimCondMat(2,10) = 0;
+
+%number of extra stimuli
+numExtraStim = sum(condFreqMat) - numel(condFreqMat);
+
+%number of trials per block.
+numTrialsPerBlock = trialsPerCondition * (numConditions + numExtraStim); 
 
 %Expanding stimulusConditionsMatrix to stimulusMatrix (what experimental
 %loop will iterate through to get information about stimulus)
-stimMat = repmat(stimCondMat, 1, trialsPerCondition, blocks);
+numStimPerSet = sum(condFreqMat);
+
+%Creating setMat from copy of stimCondMat
+setMat = stimCondMat;
+
+indexCounter = 0;
+%adding extra stimuli from condFreqMat to stimMat
+for i = 1:numConditions
+    %setting counter to number of extra stimulus
+    extraNumCounter = condFreqMat(1,i);
+    
+    %while there are extra stims --> expand setMat
+    while extraNumCounter > 1;
+        %expanding setMat
+        indexCounter = indexCounter + 1;
+        setMat(1, numConditions + indexCounter) = stimCondMat(1, i);
+        setMat(2, numConditions + indexCounter) = stimCondMat(2, i);
+        
+        %decrementing extraNumCounter
+        extraNumCounter = extraNumCounter - 1;
+    end
+    
+end
+
+%creating base stimMat without extra stimuli from condFreqMat
+stimMat = repmat(setMat, 1, trialsPerCondition, blocks);
 
 %Randomizing stimulusMatrix. stimMatShuffled will be the matrix used by the
 %experimental loop to get parameters for the stimulus being created
@@ -157,7 +189,7 @@ isiTimeFrames = round(isiTimeSecs ./ ifi);
 
 %Generating intrastimulus interval matrices of 300 ms (how long stimullus
 %is being played
-stimulusTimeSecs = repmat(.3, blocks, numTrialsPerBlock);
+stimulusTimeSecs = repmat(.05, blocks, numTrialsPerBlock);
 stimulusTimeFrames = round(stimulusTimeSecs ./ ifi);
 
 %Generating prestimulus presentation interval where fixation cross
@@ -258,7 +290,7 @@ for block = 1:blocks
             %Draw fixation point
             DrawFormattedText(window, '+', 'center', 'center', white);
 
-            %Flip to screen
+            %Flip to screen                   
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
             %detecting response
@@ -302,7 +334,7 @@ sca;
 % Plotting Psychometric Function
 %--------------------
 %Creating data matrix to store X and Y axis vectors
-data = zeros(2, numConditions);
+data = zeros(3, numConditions);
 
 %Setting X axis
 for column = 1:numConditions
@@ -316,19 +348,26 @@ for block = 1:blocks
     for i = 1:numTrialsPerBlock
        %iterate through data matrix
        for j =1:numConditions
-           if data(1, j) == stimMatShuffled(2, i, block) && respMatrix(2, i) == 1
+           %if data(i,j) corresponded to correct coherence value and there was
+           %a response
+           if data(1, j) == stimMatShuffled(2, i, block) && respMatrix(2, i, block) == 1
+               %count # of responses
                data(2, j) = data(2,j) + 1;
            end
+           %set number of each coherence
+           data(3, j) = condFreqMat(1,j) .* trialsPerCondition * blocks;
        end 
     end
 end
 
+%sorting data by coherence values. 
 [~, order] = sort(data(1,:));
 sortedData = data(:, order);
 
 %Plotting using data matrix [X;Y]
 figure;
-plot(sortedData(1,:), sortedData(2,:)/(trialsPerCondition*block));
-xlabel('Contrast');
+psychFunction = plot(sortedData(1,:), sortedData(2,:)./(data(3,:)),'.-');
+xlabel('Coherence');
 ylabel('Performance');
 title('Psychometric function');
+
