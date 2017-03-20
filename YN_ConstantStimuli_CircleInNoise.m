@@ -142,7 +142,7 @@ stimYPos = appYCenter;
 stimColor = white;
 
 %Matrix to hold textures
-texMat = zeros(appY,appX,numConditions);
+texMat = zeros(numConditions);
 
 %defining appMat as random noise within a circle centered in
 %apperture with radius appX/2
