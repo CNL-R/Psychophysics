@@ -1,3 +1,13 @@
+%Yes-No Up-Down. Press any key to say that there is a stimulus. 
+
+%Step Size = c/n, c = initial step size, n = trial number. Step size
+%shrinks as experiment progresses
+
+%Termination after set number of runs (# reversals)
+
+%Threshold calculated via Wetherill method. Average of all peaks and
+%valleys (coherence value at every reversal). 
+
 %--------------------
 % Initial Set-up Stuff
 %--------------------
@@ -51,10 +61,10 @@ blocks = 1;
 runs = 8;
 
 %initial step size
-initialStep = 0.5;
+initialStep = 0.25;
 
 %initial stimulus coherence value
-initialCoherence = 0.05;
+initialCoherence = 0.5;
 
 %preallocated number of trials per block
 prealNum = 100;
@@ -80,7 +90,7 @@ appYCenter = appY/2;
 appRadius = appX/2;
 
 %circle stimulus properties
-stimRadius = 50;
+stimRadius = 25;
 stimXPos = appXCenter;
 stimYPos = appYCenter;
 stimColor = white;
@@ -139,13 +149,18 @@ isiTimeFrames = round(isiTimeSecs ./ ifi);
 
 %Generating intrastimulus interval matrices of 50 ms (how long stimullus
 %is being played
-stimulusTimeSecs = repmat(.05, blocks, prealNum);
+stimulusTimeSecs = repmat(.03, blocks, prealNum);
 stimulusTimeFrames = round(stimulusTimeSecs ./ ifi);
 
 %Generating prestimulus presentation interval when fixation cross
 %dissapears (randomly between 500 - 1000 ms)
 psiTimeSecs = (500 + 500 * rand(blocks, prealNum)) /1000;
 psiTimeFrames = round(psiTimeSecs ./ ifi);
+
+%Generating post-stimulus presentation interval when fixation cross
+%dissapears (randomly between 750 ms)
+postSITimeSecs = repmat(.75, blocks, prealNum);
+postSITimeFrames = round(postSITimeSecs ./ ifi);
 
 %Number of frames to wait before re-drawing
 waitframes = 1;
@@ -207,7 +222,7 @@ for block = 1:blocks
         %Removing fixation cross
         for frame =1:psiTimeFrames(block, trial)
             Screen('FillRect', window, grey);
-            vbl = Screen('Flip', window);
+            vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
         end
         
         %Getting start time and drawing stimulus
@@ -223,6 +238,20 @@ for block = 1:blocks
             
             %flipping to screen
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
+            
+            %detecting response
+            KeyIsDown = KbCheck;
+            if KeyIsDown == 1
+                respMade = true;
+                tEnd = GetSecs;
+                rt = tEnd - tStart;
+            end
+        end
+        
+        %Clearing stimulus for post Stimulus interval
+        for frame =1:postSITimeFrames(block, trial)
+            Screen('FillRect', window, grey);
+            vbl = Screen('Flip', window);
             
             %detecting response
             KeyIsDown = KbCheck;
@@ -287,159 +316,207 @@ for block = 1:blocks
     %--------------------
     % The Rest of the Trials
     %--------------------
-    
-    for run = 1:runs
-        %setting reverse variable to keep track of whether or not there was
-        %a reversal 
-        reverse = 0; 
+    %while a response is made when the sign is negatve or a response is
+    %not made when the sign is positive and trial number is greater than one. (While a response is not a reversal and greater than one)
+    run = 1;
+    while run <= runs
+        %setting respMade to false
+        respMade = false;
         
-        %while a response is made when the sign is negatve or a response is
-        %not made when the sign is positive and trial number is greater than one. (While a response is not a reversal and greater than one)
-        while (respMade == true && sign(trial - 1) == -1) || (respMade == false && sign(trial - 1) == 1) && trial > 1 && reverse == 0;
-            %setting respMade to false
-            respMade = false;
-            
-            %setting the contrast level for this trial (step size of
-            %initialStep / trial#)
-            step = initialStep/trial;
-            newCoherence = initialCoherence + (step * sign(trial - 1));
-            if newCoherence < 0
-                newCoherence = 0;
-            elseif newCoherence > 1
-                newCoherence = 1;
-            end
-            stimMat(2, trial, block) = newCoherence;
-            %creating stimulus
-            %loop to draw circle with different coherence values for each stimulus type
-            %for each stim condition
-            
-            windowMat = appMat;
-            %Drawing circle into noise
-            for y = 1:appY
-                for x = 1:appX
-                    %if pixel is within the circle that defines the size of our dot
-                    %stimulus
-                    if ((x - stimXPos)^2 + (y - stimYPos)^2) < stimRadius^2
-                        %coherence % chance to set pixelValue to stimColor
-                        if rand(1) <= stimMat(2,trial,block);
-                            windowMat(y,x) = stimColor;
-                        end
+        %setting the contrast level for this trial (step size of
+        %initialStep / trial#)
+        step = initialStep/trial;
+        newCoherence = stimMat(2,trial-1,block) + (step * sign(trial - 1));
+        if newCoherence < 0
+            newCoherence = 0;
+        elseif newCoherence > 1
+            newCoherence = 1;
+        end
+        stimMat(2, trial, block) = newCoherence;
+        %creating stimulus
+        %loop to draw circle with different coherence values for each stimulus type
+        %for each stim condition
+        
+        windowMat = appMat;
+        %Drawing circle into noise
+        for y = 1:appY
+            for x = 1:appX
+                %if pixel is within the circle that defines the size of our dot
+                %stimulus
+                if ((x - stimXPos)^2 + (y - stimYPos)^2) < stimRadius^2
+                    %coherence % chance to set pixelValue to stimColor
+                    if rand(1) <= stimMat(2,trial,block);
+                        windowMat(y,x) = stimColor;
                     end
                 end
             end
-            %create texture and place into textureMatrix. textureMatrix will be
-            %used by experimental loop to draw stimuli.
-            noiseTexture = Screen('MakeTexture', window, windowMat);
-            texMat(trial) = noiseTexture;
+        end
+        %create texture and place into textureMatrix. textureMatrix will be
+        %used by experimental loop to draw stimuli.
+        noiseTexture = Screen('MakeTexture', window, windowMat);
+        texMat(trial) = noiseTexture;
+        
+        %Play fixation cross
+        DrawFormattedText(window, '+', 'center', 'center', white);
+        vbl = Screen('Flip', window);
+        
+        %Play fixation cross for the rest of the presentation interval (-1
+        %frame because we played the fixation point at frame 1)
+        for frame = 1:isiTimeFrames(block, trial) - 1
             
-            %Play fixation cross
+            %Draw fixation point
             DrawFormattedText(window, '+', 'center', 'center', white);
+            
+            %Flip to screen
+            vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
+        end
+        
+        %Removing fixation cross
+        for frame =1:psiTimeFrames(block, trial)
+            Screen('FillRect', window, grey);
             vbl = Screen('Flip', window);
-            
-            %Play fixation cross for the rest of the presentation interval (-1
-            %frame because we played the fixation point at frame 1)
-            for frame = 1:isiTimeFrames(block, trial) - 1
-                
-                %Draw fixation point
-                DrawFormattedText(window, '+', 'center', 'center', white);
-                
-                %Flip to screen
-                vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
-            end
-            
-            %Removing fixation cross
-            for frame =1:psiTimeFrames(block, trial)
-                Screen('FillRect', window, grey);
-                vbl = Screen('Flip', window);
-            end
-            
-            %Getting start time and drawing stimulus
-            tStart = GetSecs;
+        end
+        
+        %Getting start time and drawing stimulus
+        tStart = GetSecs;
+        Screen('DrawTextures', window, texMat(trial), [], rectCenter, [], [], [], []);
+        vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
+        
+        %Play stimulus patch for the rest of the presentation interval (-1
+        %frame because we played the fixation point at frame 1)
+        for frame = 1:stimulusTimeFrames(block, trial) - 1
+            %Drawing Texture
             Screen('DrawTextures', window, texMat(trial), [], rectCenter, [], [], [], []);
+            
+            %flipping to screen
             vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
             
-            %Play stimulus patch for the rest of the presentation interval (-1
-            %frame because we played the fixation point at frame 1)
-            for frame = 1:stimulusTimeFrames(block, trial) - 1
-                %Drawing Texture
-                Screen('DrawTextures', window, texMat(trial), [], rectCenter, [], [], [], []);
-                
-                %flipping to screen
-                vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
-                
-                %detecting response
-                KeyIsDown = KbCheck;
-                if KeyIsDown == 1
-                    respMade = true;
-                    tEnd = GetSecs;
-                    rt = tEnd - tStart;
-                end
+            %detecting response
+            KeyIsDown = KbCheck;
+            if KeyIsDown == 1
+                respMade = true;
+                tEnd = GetSecs;
+                rt = tEnd - tStart;
             end
-            
-            %Interstimulus window where participant can make a response about
-            %the stimulus just played
-            DrawFormattedText(window, '+', 'center', 'center', white);
+        end
+        
+        %Clearing stimulus for post stimulus interval Frames. 
+        for frame =1:postSITimeFrames(block, trial)
+            Screen('FillRect', window, grey);
             vbl = Screen('Flip', window);
             
-            %Play fixation point for the rest of the presentation interval (-1
-            %frame because we played the fixation point at frame 1)
-            for frame = 1:isiTimeFrames(block, trial) - 1
-                
-                %Draw fixation point
-                DrawFormattedText(window, '+', 'center', 'center', white);
-                
-                %Flip to screen
-                vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
-                
-                %detecting response
-                KeyIsDown = KbCheck;
-                if KeyIsDown == 1
-                    respMade = true;
-                    tEnd = GetSecs;
-                    rt = tEnd - tStart;
-                end
-                
+            %detecting response
+            KeyIsDown = KbCheck;
+            if KeyIsDown == 1
+                respMade = true;
+                tEnd = GetSecs;
+                rt = tEnd - tStart;
             end
+        end
+        
+        %Interstimulus window where participant can make a response about
+        %the stimulus just played
+        DrawFormattedText(window, '+', 'center', 'center', white);
+        vbl = Screen('Flip', window);
+        
+        %Play fixation point for the rest of the presentation interval (-1
+        %frame because we played the fixation point at frame 1)
+        for frame = 1:isiTimeFrames(block, trial) - 1
             
-            %if this response is a reversal, assign coherence level to
-            %peaks and valley Mat and mark as reversal
-            if respMade == (true && sign(trial - 1) == 1)|| (respMade == false && sign(trial - 1) == -1)
-                pvMatrix(trial, block) = newCoherence;
-                reverse = 1;
+            %Draw fixation point
+            DrawFormattedText(window, '+', 'center', 'center', white);
+            
+            %Flip to screen
+            vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
+            
+            %detecting response
+            KeyIsDown = KbCheck;
+            if KeyIsDown == 1
+                respMade = true;
+                tEnd = GetSecs;
+                rt = tEnd - tStart;
             end
-            
-            %saving response to respMatrix
-            %stimulus #
-            respMatrix(1, trial, block) = stimMat(1, trial, block);
-            %1 or 0 for whether or not a response was made
-            if respMade == true
-                respMatrix(2, trial, block) = 1;
-            else
-                respMatrix(2, trial, block) = 0;
-            end
-            
-            %RT if resp made or 0 if no resp made
-            if respMade == true
-                respMatrix(3, trial, block) = rt;
-            else
-                respMatrix(3, trial, block) = 0;
-            end
-            
-            %Assigning sign. True for negative. False for positive
-            if respMade == true
-                sign(trial, block) = -1;
-            elseif respMade == false
-                sign(trial, block) = 1;
-            end
-            
-            trial = trial + 1;
             
         end
         
+        %if this response is a reversal, assign coherence level to
+        %peaks and valley Mat and mark as reversal
+        if respMade == (true && sign(trial - 1) == 1)|| (respMade == false && sign(trial - 1) == -1)
+            pvMatrix(trial, block) = newCoherence;
+            reverse = 1;
+            run = run + 1;
+        end
+        
+        %saving response to respMatrix
+        %stimulus #
+        respMatrix(1, trial, block) = stimMat(1, trial, block);
+        %1 or 0 for whether or not a response was made
+        if respMade == true
+            respMatrix(2, trial, block) = 1;
+        else
+            respMatrix(2, trial, block) = 0;
+        end
+        
+        %RT if resp made or 0 if no resp made
+        if respMade == true
+            respMatrix(3, trial, block) = rt;
+        else
+            respMatrix(3, trial, block) = 0;
+        end
+        
+        %Assigning sign. True for negative. False for positive
+        if respMade == true
+            sign(trial, block) = -1;
+        elseif respMade == false
+            sign(trial, block) = 1;
+        end
+        
+        trial = trial + 1;
+        
     end
+
     %Calculating psychometric threshold using Wetherill method
     psychThresh = zeros(blocks);
     psychThresh(block) = sum(pvMatrix(:,block)) / numel(pvMatrix(:,block));
+    
+    %plotting run history
+    %for each trial
+    
+    %turning on hold
+    hold on;
+    
+    %setting dimmensions of plot
+    set(gca, 'xlim', [0 trial], 'ylim', [0 1]);
+    
+    %creating matrices to plot
+    positives = stimMat(2, 1:trial, block);
+    negatives = positives;
+    
+    
+    %looping through positives and negatives matrix and setting all negative responses to
+    %NaN in positives and all pos responses to NaN in negatives
+    for t =1:trial
+        if respMatrix(2, t, block) == 0
+            positives(t) = NaN;
+        elseif respMatrix(2, t, block) == 1
+            negatives(t) = NaN; 
+        end
+    end
+    
+    
+    %plotting
+    trialHistory = plot(1:trial-1, positives(1:end-1), 1:trial-1, negatives(1:end-1), 'LineStyle', 'none');
+    %setting positives to have + symbol and negatives to have - symbol
+    trialHistory(1).Marker = 'o';
+    trialHistory(1).MarkerFaceColor = 'g';
+    trialHistory(1).MarkerEdgeColor = 'g';
+    
+    trialHistory(2).Marker = 'o';
+    trialHistory(2).MarkerFaceColor = 'r';
+    trialHistory(2).MarkerEdgeColor = 'r';
+    
+
+    
 end
 
 %end of experiment screen
