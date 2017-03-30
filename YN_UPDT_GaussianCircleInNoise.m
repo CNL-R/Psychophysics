@@ -64,7 +64,7 @@ runs = 8;
 initialStep = 0.25;
 
 %initial stimulus coherence value
-initialCoherence = 1;
+initialCoherence = 0.5;
 
 %preallocated number of trials per block
 prealNum = 100;
@@ -91,7 +91,7 @@ appYCenter = appY/2;
 appRadius = appX/2;
 
 %circle stimulus properties
-stimRadius = 100;
+stimRadius = 50;
 stimXPos = appXCenter;
 stimYPos = appYCenter;
 stimColor = white;
@@ -127,7 +127,7 @@ imSize = appX;
 X0 = 1:imSize;                          
 X0 = (X0 / imSize) - .5;                 
 [Xm Ym] = meshgrid(X0, X0);
-sigma = 15;
+sigma = 20;
 s = sigma/imSize;
 gauss = exp( -(((Xm.^2)+(Ym.^2)) ./ (2* s^2)) );
 
@@ -515,21 +515,6 @@ for block = 1:blocks
             negatives(t) = NaN; 
         end
     end
-    
-    
-    %plotting
-    trialHistory = plot(1:trial-1, positives(1:end-1), 1:trial-1, negatives(1:end-1), 'LineStyle', 'none');
-    %setting positives to have + symbol and negatives to have - symbol
-    trialHistory(1).Marker = 'o';
-    trialHistory(1).MarkerFaceColor = 'g';
-    trialHistory(1).MarkerEdgeColor = 'g';
-    
-    trialHistory(2).Marker = 'o';
-    trialHistory(2).MarkerFaceColor = 'r';
-    trialHistory(2).MarkerEdgeColor = 'r';
-    
-
-    
 end
 
 %end of experiment screen
@@ -540,3 +525,14 @@ Screen('Flip', window);
 KbStrokeWait;
 close all;
 sca;
+
+%plotting
+trialHistory = plot(1:trial-1, positives(1:end-1), 1:trial-1, negatives(1:end-1), 'LineStyle', 'none');
+%setting positives to have + symbol and negatives to have - symbol
+trialHistory(1).Marker = 'o';
+trialHistory(1).MarkerFaceColor = 'g';
+trialHistory(1).MarkerEdgeColor = 'g';
+
+trialHistory(2).Marker = 'o';
+trialHistory(2).MarkerFaceColor = 'r';
+trialHistory(2).MarkerEdgeColor = 'r';
