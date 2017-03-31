@@ -486,17 +486,21 @@ for block = 1:blocks
         
         trial = trial + 1;
         
-    end
-
-    %Calculating psychometric threshold using Wetherill method
-    psychThresh = zeros(blocks);
-    psychThresh(block) = sum(pvMatrix(:,block)) / numel(pvMatrix(:,block));
-    
-    %plotting run history
-    %for each trial
-    
-    %turning on hold
-    hold on;
+    end 
+        %Calculating psychometric threshold using Wetherill method
+        psychThresh = zeros(blocks);
+        numReversals = 0;
+        for i = 1:numel(pvMatrix(:,block))
+            if pvMatrix(i, block) ~= 0
+                numReversals = numReversals + 1;
+            end
+        end
+        psychThresh(block) = sum(pvMatrix(:,block)) / numReversals;
+        %plotting run history
+        %for each trial
+        
+        %turning on hold
+        hold on;
     
     %setting dimmensions of plot
     set(gca, 'xlim', [0 trial], 'ylim', [0 1]);
