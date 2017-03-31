@@ -477,7 +477,13 @@ for block = 1:blocks
 
     %Calculating psychometric threshold using Wetherill method
     psychThresh = zeros(blocks);
-    psychThresh(block) = sum(pvMatrix(:,block)) / numel(pvMatrix(:,block));
+    numReversals = 0;
+    for i = 1:numel(pvMatrix(:,block))
+        if pvMatrix(i, block) ~= 0
+            numReversals = numReversals + 1;
+        end 
+    end 
+    psychThresh(block) = sum(pvMatrix(:,block)) / numReversals;
     
     %plotting run history
     %for each trial
