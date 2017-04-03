@@ -61,10 +61,10 @@ blocks = 1;
 runs = 8;
  
 %initial step size
-initialStep = 0.25;
+initialStep = 0.1;
 
 %initial stimulus coherence value
-initialCoherence = 0.25;
+initialCoherence = .123;
 
 %preallocated number of trials per block
 prealNum = 100;
@@ -96,7 +96,6 @@ stimRadius = stimLength/2;
 stimXPos = appXCenter/2;
 stimYPos = appYCenter/2;
 lambda = 50; %wavelegnth (number of pixels per cycle)
-theta = 0; %grating orientation
 sigma = 50; %gaussian standard deviation in pixels
 imSize = stimLength;
 X0 = 1:imSize;                          
@@ -106,11 +105,26 @@ s = sigma/imSize;
 gauss = exp( -(((Xm.^2)+(Ym.^2)) ./ (2* s^2)));
 A = 0.75; %amplitude variable
 
+%matrix for storing the base gabor pixel values
 gabor = repmat(zeros(stimLength), 1, 1, prealNum);
+
+%Randoming phase and orientation
 phase = zeros(prealNum);
+orientation = zeros(imSize, imSize, prealNum);
+theta = zeros(prealNum);
 for i = 1:prealNum
-    phase(i) =  + rand(1)*2*pi;
-    grating = A .* sin(Xm * imSize/lambda * 2 * pi + phase(i));
+    %setting phase of index i to a random value between 0 and 2pi
+    phase(i) = rand(1)*2*pi;
+  
+    
+    %assigning random theta (orientation)value between 0 and 2pi. 
+    theta(i) = rand(1)*2*pi;
+    Xt = Xm * cos(theta(i));
+    Yt = Ym * sin(theta(i));
+    orientation(:,:,i) = Xt + Yt; 
+    
+    grating = A .* sin(orientation(:,:,i) * imSize/lambda * 2 * pi + phase(i));
+     
     gaborTemp = grating .* gauss; 
     gaborTemp = (gaborTemp./2 + 0.5);
     gabor(:, :, i) = gaborTemp;
@@ -351,7 +365,7 @@ for block = 1:blocks
         
         %setting the contrast level for this trial (step size of
         %initialStep / trial#)
-        step = initialStep/trial;
+        step = initialStep/trial - 1;
         coherence = stimMat(2,trial-1,block) + (step * sign(trial - 1));
         if coherence < 0
             coherence = 0;
