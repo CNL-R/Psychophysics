@@ -104,5 +104,5 @@ rectCenter = CenterRectOnPointd(baseRect, xPos, yPos);
 %Drawing and flipping
 Screen('DrawTextures', window, noiseTexture, [], rectCenter, [], [], [], []);
 Screen('Flip', window);
-
+%
 
