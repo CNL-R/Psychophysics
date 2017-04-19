@@ -195,8 +195,17 @@ postStimTime = 1000;
 %Number of frames to wait before re-drawing
 waitframes = 1;
 
-timesCue = zeros(prealNum, blocks); %TIMING CODE
+%number of trials to play
+trials = 10;
+
+timesCue = zeros(trials + 1, blocks); %TIMING CODE
 timesPresentation = timesCue; %TIMING CODE
+timesPreP = timesCue; %TIMING CODE
+timesPostP = timesCue; %TIMING CODE
+timesPreStim = timesCue; %TIMING CODE
+timesStim = timesCue; %TIMING CODE
+timesPostStim = timesCue; %TIMING CODE
+timesISI = timesCue; %TIMING CODE
 %--------------------
 % AUDITORY SET UP STUFF
 %--------------------
@@ -260,21 +269,24 @@ for block = 1:blocks
         reverse = 0;
         %if first trial and block 1, present a start screen and wait for a key press.
         if block == 1
-            DrawFormattedText(window, 'Welcome to Allen''s Up-Down Transformed detection task. Press any key to begin.', 'center', 'center', white);
-            Screen('Flip', window);
-            KbStrokeWait;
+%             DrawFormattedText(window, 'Welcome to Allen''s Up-Down Transformed detection task. Press any key to begin.', 'center', 'center', white);
+%             Screen('Flip', window);
+%             KbStrokeWait;
             %else if first trial and not block 1, present an interblock screen and wait for a key press
         elseif block ~= 1
-            DrawFormattedText(window, ['Finished Block #' num2str(block) - 1 '. Press any key to continue.'], 'center', 'center')
-            Screen('Flip', window);
-            KbStrokeWait;
+%             DrawFormattedText(window, ['Finished Block #' num2str(block) - 1 '. Press any key to continue.'], 'center', 'center')
+%             Screen('Flip', window);
+%             KbStrokeWait;
         end
         
         
         %Presenting Grey Annulus
         vbl = PresentStimulus(annulusTexture, window, 0, ifi, annulusTime(1), annulusTime(2), false, 0, 0, rectCenter);
         
-        timePresentation = GetSecs; %TIMING CODE
+        timeStart = GetSecs; %TIMING CODE
+        
+       
+        cueStart = GetSecs; %TIMING CODE
         %Presenting Cue
         if blockMatrix(1, block) == 1
             %Presenting pure visual cue
@@ -283,21 +295,34 @@ for block = 1:blocks
             %presenting pure audio cue
             PresentEfficientAVStimulus(annulusTexture, cueBeep, 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
         elseif blockMatrix(1, block) == 3
-            %presenting AV stimulus
+            %presenting AV cue
             PresentEfficientAVStimulus(cueTexture, cueBeep, 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
         end
+        timesCue(trial, block) = (GetSecs - cueStart); %TIMING CODE
         
+        timePreStim = GetSecs;%TIMING CODE
         %Presenting Pre-Stim Annulus
         vbl = PresentStimulus(annulusTexture, window, 0, ifi, preStimTime, 0, false, 0, 0, rectCenter);
         
+        timesPreStim(trial, block) = GetSecs - timePreStim;%TIMING CODE
         %Getting Start Time and Presenting the Stimulus
         tStart = GetSecs;
-        [vbl,respMade,rt]= PresentStimulus(texMat(1, block), window, vbl, ifi, stimulusTime, 0, true, tStart, respMade, rectCenter);
+        [vbl,respMade,rt]= PresentStimulus(texMat(trial, block), window, vbl, ifi, stimulusTime, 0, true, tStart, respMade, rectCenter);
+        timesStim(trial,block) = GetSecs - tStart;%TIMING CODE
         
-        %Removing Stimulus
+        %Removing Stimulus: Post-Stimulus interval. Participant can make response.
+        timePostStim = GetSecs;%TIMING CODE
         [vbl,respMade,rt] = PresentStimulus(annulusTexture, window, vbl, ifi, postStimTime, 0, true, tStart, respMade, rectCenter);
+        timesPostStim(trial, block) = GetSecs - timePostStim;%TIMING CODE
+        
+        %Interstimulus window where participant can make a response about
+        %the stimulus that was just played
+        timeISI = GetSecs; %TIMING CODE
         [vbl,respMade,rt] = PresentStimulus(annulusTexture, window, vbl, ifi, annulusTime(1), annulusTime(2), true, tStart, respMade, rectCenter);
-        timesPresentation(trial, block) = (GetSecs - timePresentation); %TIMING CODE            
+        timesISI(trial, block) = GetSecs - timeISI; %TIMING CODE
+    
+        
+        timePostP = GetSecs; %TIMING CODE
         %saving response to respMatrix
         %stimulus #
         respMatrix(1, trial, block) = stimMat(1, trial, block);
@@ -323,7 +348,10 @@ for block = 1:blocks
         end
         
         %update trial number. 
+        timesPostP = GetSecs - timePostP;
+        timesPresentation(trial, block) = (GetSecs - timeStart); %TIMING CODE   
         trial = trial + 1;
+         
     end
     
     %--------------------
@@ -332,7 +360,8 @@ for block = 1:blocks
     %while a response is made when the sign is negatve or a response is
     %not made when the sign is positive and trial number is greater than one. (While a response is not a reversal and greater than one)
     run = 1;
-    while run <= runs
+    while trial <= trials
+        timeStart = GetSecs; %TIMING CODE
         %setting respMade to false
         respMade = false;
         
@@ -382,8 +411,7 @@ for block = 1:blocks
         noiseTexture = Screen('MakeTexture', window, gaborMatrix(:,:,trial));
         texMat(trial, block) = noiseTexture;
              
-        %presenting cue
-        timePresentation = GetSecs; %TIMING CODE
+        timesPreP(trial, block) = GetSecs - timeStart; %TIMING CODE
         cueStart = GetSecs; %TIMING CODE
         %Presenting Cue
         if blockMatrix(1, block) == 1
@@ -399,22 +427,24 @@ for block = 1:blocks
         
         
         timesCue(trial, block) = (GetSecs - cueStart); %TIMING CODE
-        
+        timePreStim = GetSecs;%TIMING CODE
         %Presenting Pre-Stim Annulus
         vbl = PresentStimulus(annulusTexture, window, 0, ifi, preStimTime, 0, false, 0, 0, rectCenter);
-        
+        timesPreStim(trial, block) = GetSecs - timePreStim;%TIMING CODE
         %Getting Start Time and Presenting the Stimulus
         tStart = GetSecs;
         [vbl,respMade,rt]= PresentStimulus(texMat(trial, block), window, vbl, ifi, stimulusTime, 0, true, tStart, respMade, rectCenter);
-        
+        timesStim(trial,block) = GetSecs - tStart;%TIMING CODE
         %Removing Stimulus: Post-Stimulus interval. Participant can make response.
+        timePostStim = GetSecs;%TIMING CODE
         [vbl,respMade,rt] = PresentStimulus(annulusTexture, window, vbl, ifi, postStimTime, 0, true, tStart, respMade, rectCenter);
-        
+        timesPostStim(trial, block) = GetSecs - timePostStim;%TIMING CODE
         %Interstimulus window where participant can make a response about
         %the stimulus that was just played
+        timeISI = GetSecs; %TIMING CODE
         [vbl,respMade,rt] = PresentStimulus(annulusTexture, window, vbl, ifi, annulusTime(1), annulusTime(2), true, tStart, respMade, rectCenter);
-        
-        timesPresentation(trial, block) = (GetSecs - timePresentation); %TIMING CODE 
+        timesISI(trial, block) = GetSecs - timeISI; %TIMING CODE
+        timePostP = GetSecs; %TIMING CODE
         
         %saving response to respMatrix
         %stimulus #
@@ -508,6 +538,8 @@ for block = 1:blocks
             end
         end
         
+        timesPresentation(trial, block) = (GetSecs - timeStart); %TIMING CODE 
+        timesPostP(trial,block) = GetSecs - timePostP;
         trial = trial + 1;
     end
 
@@ -519,9 +551,9 @@ for i = 1:numel(pvMatrix(:,block))
     end
 end
 
-DrawFormattedText(window, 'Block Finished! Press any key to continue.','center', 'center', white, window);
-Screen('Flip', window);
-KbStrokeWait;
+% DrawFormattedText(window, 'Block Finished! Press any key to continue.','center', 'center', white, window);
+% Screen('Flip', window);
+% KbStrokeWait;
 
 end
 
@@ -537,32 +569,46 @@ KbStrokeWait;
 close all;
 sca;
 
-%% --------------------
-% Plotting Run History
+%% ------------------
+%  Calculating Averages on times Matrices
 %--------------------
-
-%turning on hold
-hold on;
-
-%setting dimmensions of plot
-set(gca, 'xlim', [0 trial], 'ylim', [0 1]);
-
-%plotting
-%trialHistory = plot(indexPRespMatrix, stimMat(2, indexPRespMatrix), indexNRespMatrix, stimMat(2, indexNRespMatrix), indexPRevMatrix, stimMat(2, indexPRevMatrix), indexNRevMatrix, stimMat(2, indexNRevMatrix), indexCatchMatrix, stimMat(2,indexCatchMatrix),'LineStyle', 'none');
-trialHistory = plot(indexPRespMatrix, stimMat(2, indexPRespMatrix, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'g');
-trialHistory = plot(indexNRespMatrix, stimMat(2, indexNRespMatrix, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'r');
-
-%setting positives to have + symbol and negatives to have - symbol ;
-
+for i = 1:blocks
+    for j = 1:trials
+        timesCue(trials + 1, i) = timesCue(trials + 1, i) + timesCue(j, i);
+        timesISI(trials + 1, i) = timesCue(trials + 1, i) + timesCue(j, i);
+        timesCue(trials + 1, i) = timesCue(trials + 1, i) + timesCue(j, i);
+        timesCue(trials + 1, i) = timesCue(trials + 1, i) + timesCue(j, i);
+        timesCue(trials + 1, i) = timesCue(trials + 1, i) + timesCue(j, i);
+        timesCue(trials + 1, i) = timesCue(trials + 1, i) + timesCue(j, i);
+    end
+end
+%% 
+% %% --------------------
+% % Plotting Run History
+% %--------------------
 % 
-% trialHistory(3).Marker = 'o';
-% trialHistory(3).MarkerFaceColor = 'g';
-% trialHistory(3).MarkerEdgeColor = 'none';
+% %turning on hold
+% hold on;
 % 
-% trialHistory(4).Marker = 'o';
-% trialHistory(4).MarkerFaceColor = 'r';
-% trialHistory(4).MarkerEdgeColor = 'none';
+% %setting dimmensions of plot
+% set(gca, 'xlim', [0 trial], 'ylim', [0 1]);
 % 
-% trialHistory(5).Marker = 'o';
-% trialHistory(5).MarkerFaceColor = 'b';
-% trialHistory(5).MarkerEdgeColor = 'none';
+% %plotting
+% %trialHistory = plot(indexPRespMatrix, stimMat(2, indexPRespMatrix), indexNRespMatrix, stimMat(2, indexNRespMatrix), indexPRevMatrix, stimMat(2, indexPRevMatrix), indexNRevMatrix, stimMat(2, indexNRevMatrix), indexCatchMatrix, stimMat(2,indexCatchMatrix),'LineStyle', 'none');
+% trialHistory = plot(indexPRespMatrix, stimMat(2, indexPRespMatrix, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'g');
+% trialHistory = plot(indexNRespMatrix, stimMat(2, indexNRespMatrix, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'r');
+% 
+% %setting positives to have + symbol and negatives to have - symbol ;
+% 
+% % 
+% % trialHistory(3).Marker = 'o';
+% % trialHistory(3).MarkerFaceColor = 'g';
+% % trialHistory(3).MarkerEdgeColor = 'none';
+% % 
+% % trialHistory(4).Marker = 'o';
+% % trialHistory(4).MarkerFaceColor = 'r';
+% % trialHistory(4).MarkerEdgeColor = 'none';
+% % 
+% % trialHistory(5).Marker = 'o';
+% % trialHistory(5).MarkerFaceColor = 'b';
+% % trialHistory(5).MarkerEdgeColor = 'none';
