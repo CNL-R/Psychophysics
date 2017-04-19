@@ -50,6 +50,18 @@ rand('seed', sum(100 * clock));
 
 % Set up alpha-blending for smooth (anti-aliased) lines
 Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');
+
+%AUDITORY SET UP STUFF
+% Initialize Sounddriver
+InitializePsychSound(1);
+
+% Number of channels and sample rate
+nrchannels = 2;
+sampleFreq = 48000;
+
+%Volume %
+volume = 0.5;
+
 %--------------------
 % Experiment Params
 %--------------------
@@ -196,26 +208,6 @@ postStimTime = 1000;
 waitframes = 1;
 
 timesCue = zeros(prealNum, blocks); %TIMING CODE
-
-%--------------------
-% AUDITORY SET UP STUFF
-%--------------------
-% Initialize Sounddriver
-InitializePsychSound(1);
-
-% Number of channels and sample rate
-nrchannels = 2;
-sampleFreq = 48000;
-
-%Volume %
-volume = 0.5;
-
-%Open audio port
-%pahandle = PsychPortAudio('Open', [], 1, 1, sampleFreq, nrchannels, [], [], [], []);
-
-% Make a beep which we will play back to the user
-cueBeep = MakeBeep(1000, cueTime, sampleFreq);
-noBeep = MakeBeep(0, cueTime, sampleFreq);
 %--------------------
 % The Response Matrix
 %--------------------
@@ -228,7 +220,7 @@ respMatrix = nan(3, prealNum, blocks);
 %(coherence values where a reversal happened)
 pvMatrix = zeros(runs + 2,blocks);
 
-%matrix to hold all non-catch trial responses 
+%matrix to hold all non-catch trial responses
 nonCatchMatrix = zeros(prealNum, blocks);
 
 %index value matrix to hold index values of different types of responses
@@ -240,7 +232,6 @@ indexCatchMatrix = [];
 
 %matrix to hold calculated psychthresholds
 psychThresh = zeros(blocks, 1);
-timesPresentation = zeros(prealNum, blocks); %TIMING CODE
 %% --------------------
 % The Experimental Loop
 %--------------------
@@ -277,13 +268,13 @@ for block = 1:blocks
         %Presenting Cue
         if blockMatrix(1, block) == 1
             %Presenting pure visual cue
-            PresentEfficientAVStimulus(cueTexture, cueBeep, 0, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
+            PresentAVStimulus(cueTexture, 0, 0, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
         elseif blockMatrix(1, block) == 2
             %presenting pure audio cue
-            PresentEfficientAVStimulus(annulusTexture, cueBeep, 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
+            PresentAVStimulus(annulusTexture, cueFrequency, volume, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
         elseif blockMatrix(1, block) == 3
             %presenting AV stimulus
-            PresentEfficientAVStimulus(cueTexture, cueBeep, 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
+            PresentAVStimulus(cueTexture, cueFrequency, volume, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
         end
         
         %Presenting Pre-Stim Annulus
@@ -332,6 +323,8 @@ for block = 1:blocks
     %not made when the sign is positive and trial number is greater than one. (While a response is not a reversal and greater than one)
     run = 1;
     while run <= runs
+        timesPresentation = zeros(prealNum, blocks); %TIMING CODE
+        tic; %TIMING CODE
         %setting respMade to false
         respMade = false;
         
@@ -382,21 +375,18 @@ for block = 1:blocks
         texMat(trial, block) = noiseTexture;
              
         %presenting cue
-        cueStart = GetSecs;
-        %Presenting Cue
+        tic; %TIMING CODE
         if blockMatrix(1, block) == 1
             %Presenting pure visual cue
-            PresentEfficientAVStimulus(cueTexture, cueBeep, 0, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
+            PresentAVStimulus(cueTexture, 0, 0, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
         elseif blockMatrix(1, block) == 2
             %presenting pure audio cue
-            PresentEfficientAVStimulus(annulusTexture, cueBeep, 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
+            PresentAVStimulus(annulusTexture, cueFrequency, volume, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
         elseif blockMatrix(1, block) == 3
             %presenting AV stimulus
-            PresentEfficientAVStimulus(cueTexture, cueBeep, 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
+            PresentAVStimulus(cueTexture, cueFrequency, volume, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
         end
-        
-        
-        timesCue(trial, block) = (GetSecs - cueStart); %TIMING CODE
+        toc = timesCue(trial, block); %TIMING CODE
         
         %Presenting Pre-Stim Annulus
         vbl = PresentStimulus(annulusTexture, window, 0, ifi, preStimTime, 0, false, 0, 0, rectCenter);
@@ -505,6 +495,7 @@ for block = 1:blocks
         end
         
         trial = trial + 1;
+        timesPresentation(trial, block) = toc; 
     end
 
 %Calculating psychometric threshold using Wetherill method
