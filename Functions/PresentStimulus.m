@@ -1,4 +1,4 @@
-function [vbl,respMade,rt] = PresentStimulus(stimulusTexture, window, vbl, ifi, Duration1, Duration2, GetResp, tStart, PreviousRespMade, rectCenter)
+function [vbl,respMade,rt] = PresentStimulus(stimulusTexture, window, vbl, ifi, Duration1, Duration2, GetResp, tStart, PreviousRespMade, rt, rectCenter)
 %Plays a stimulus for the given Duration in ms. Will generate a vbl
 %if no vbl is given
 %   window: window ptr of the window to present the stimuli. [window, windowRect] = PsychImaging('OpenWindow', screenNumber, 0.5, [], 32, 2,...
@@ -23,7 +23,6 @@ function [vbl,respMade,rt] = PresentStimulus(stimulusTexture, window, vbl, ifi, 
 
 %setting respMade to previous response and setting default rt to 0
 respMade = PreviousRespMade;
-rt = 0;
 
 %setting number of frames to wait before redrawing
 waitframes = 1;

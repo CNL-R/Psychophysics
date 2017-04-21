@@ -1,4 +1,4 @@
-function [vbl,respMade,rt] = PresentBlankScreen(window, vbl, ifi, color, Duration1, Duration2, GetResp, tStart, PreviousRespMade)
+function [vbl,respMade,rt] = PresentBlankScreen(window, vbl, ifi, color, Duration1, Duration2, GetResp, tStart, PreviousRespMade, rt)
 %Plays a blank screen for the given Duration in ms. Will generate a vbl
 %if no vbl is given
 %   window: window ptr of the window to present the stimuli. [window, windowRect] = PsychImaging('OpenWindow', screenNumber, 0.5, [], 32, 2,...
@@ -23,7 +23,7 @@ function [vbl,respMade,rt] = PresentBlankScreen(window, vbl, ifi, color, Duratio
 
 %setting respMade to previous response and setting default rt to 0
 respMade = PreviousRespMade;
-rt = 0;
+
 
 %setting number of frames to wait before redrawing
 waitframes = 1;
