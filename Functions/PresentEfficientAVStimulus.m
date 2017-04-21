@@ -1,4 +1,4 @@
-function [vbl,respMade,rt] = PresentEfficientAVStimulus(stimulusTexture, myBeep, volume, window, vbl, ifi, Duration1, Duration2, GetResp, tStart, PreviousRespMade, rectCenter)
+function [vbl,respMade,rt] = PresentEfficientAVStimulus(stimulusTexture, WAVFile, volume, window, vbl, ifi, Duration1, Duration2, GetResp, tStart, PreviousRespMade, rectCenter)
 %Plays a stimulus given stimulusTexture and audio objects. 
 %if no vbl is given
 %   window: window ptr of the window to present the stimuli. [window, windowRect] = PsychImaging('OpenWindow', screenNumber, 0.5, [], 32, 2,...
@@ -19,7 +19,7 @@ function [vbl,respMade,rt] = PresentEfficientAVStimulus(stimulusTexture, myBeep,
 %NOTE: This function will only change respMade to true if a response is
 %made. If there is no response, respMade is NOT set to false. This is to accomodate
 %for a series of presentations that wish to get user response. Initialize
-%respMade as false before calling any presentX stimulus. 
+%respMade as false before calling any presentX stimulus.  
 
 %audiosetup stuff
 repetitions = 1;
@@ -27,6 +27,10 @@ startCue = 0;
 waitForDeviceStart = 1;
 sampleFreq = 48000;
 nrchannels = 2;
+
+[y, ~] = audioread(WAVFile);
+y(:, 2) = y(:, 1);
+y = y';
 
 %setting respMade to previous response and setting default rt to 0
 respMade = PreviousRespMade;
@@ -46,7 +50,7 @@ end
 
 pahandle = PsychPortAudio('Open', [], 1, 1, sampleFreq, nrchannels, [], [], [], []);
 PsychPortAudio('Volume', pahandle, volume);
-PsychPortAudio('FillBuffer', pahandle, [myBeep; myBeep]);
+PsychPortAudio('FillBuffer', pahandle, y);
 
 %if this is the first instance of putting something on the monitor
 if vbl == 0
