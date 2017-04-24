@@ -19,7 +19,7 @@ PsychDefaultSetup(2);
 
 % Set the screen number to the external secondary monitor if there is one
 % connected
-screenNumber = max(Screen('Screens'));
+screenNumber = 1;%max(Screen('Screens'));
 
 % Define black, white and grey
 white = WhiteIndex(screenNumber);
@@ -273,9 +273,9 @@ for block = 1:blocks
         reverse = 0;
         %if first trial and block 1, present a start screen and wait for a key press.
         if block == 1
-%              DrawFormattedText(window, 'Welcome to Allen''s Up-Down Transformed detection task. Press any key to begin.', 'center', 'center', white); %TIMING CODE 
-%              Screen('Flip', window);
-%              KbStrokeWait;
+             DrawFormattedText(window, 'Welcome to Allen''s Up-Down Transformed detection task. Press any key to begin.', 'center', 'center', white); %TIMING CODE 
+             Screen('Flip', window);
+             KbStrokeWait;
             %else if first trial and not block 1, present an interblock screen and wait for a key press
         elseif block ~= 1
 %              DrawFormattedText(window, ['Finished Block #' num2str(block) - 1 '. Press any key to continue.'], 'center', 'center') %TIMING CODE 
