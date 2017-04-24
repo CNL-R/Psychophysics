@@ -1,21 +1,19 @@
-%Yes-No Up-Down. Press any key to say that there is a stimulus. 
-
-%Step Size = c/n, c = initial step size, n = trial number. Step size
-%shrinks as experiment progresses
-
-%Termination after set number of runs (# reversals)
-
-%Threshold calculated via Wetherill method. Average of all peaks and
-%valleys (coherence value at every reversal). 
-
-%--------------------
-% Initial Set-up Stuff
-%--------------------
 % Clear the workspace and the screen
 sca;
 close all;
 clearvars;
 
+%TIMING VERSION of EXPERIMENT 1_1
+trials = 10; %How many trials per block %TIMING CODE
+
+%--------------------
+% Initial Initial Set-up Stuff
+%--------------------
+participant = 'test1';
+
+%--------------------
+% Initial Set-up Stuff
+%--------------------
 % Setup PTB with some default values
 PsychDefaultSetup(2);
 
@@ -66,8 +64,12 @@ blockMatrix = repmat([1:3; 0 0 0; 0 0 0], 1, blocksPerCondition);
     %2 - Auditory
     %3 - Audiovisual
 
+blockMatrix(1,1:3) = [1 2 3];
+blockMatrix(1,4:6) = [2 3 1];
+blockMatrix(1,7:9) = [3 1 2];
+
 %number of reversals/runs
-runs = 2;
+runs = 8;
  
 %initial step size
 initialStep = 0.3;
@@ -100,7 +102,7 @@ maxSizeUp = 3;
 maxSizeDown = 3;
 
 %catch trial information
-catchFrequency = 0; %what percentage of the trials will be catch trials
+catchFrequency = 0.5; %what percentage of the trials will be catch trials
 subFrequency = 0.5; %what percentage of the catch trials will be subliminal (0% coherence). assuming supraFrequency is 1-subFrequency
 
 %initializing catchMat, the matrix that holds data about which trials are
@@ -132,13 +134,13 @@ s = sigma/imSize;
 gauss = exp( -(((Xm.^2)+(Ym.^2)) ./ (2* s^2)));
 A = 0.75; %amplitude variable
 
-%Creating Annulus
+%Annulus Parameters
 annulusDiameter = 300;
 annulusWidth = 10;
 annulusColor = 0.75;
 annulusBackgroundColor = 0.5;
 
-%cue stuff
+%Cue Information
 cueColor = 1;
 cueFrequency = 1000;
 
@@ -174,29 +176,23 @@ texMat(1, :) = noiseTexture;
 UPDCoherenceMat = zeros(prealNum, 1, blocks);
 UPDCoherenceMat(1, :) = initialCoherence;
 %--------------------
-% Timing Information
+% Timing Information %TIMING CODE: DeScramble Intervals
 %--------------------
 %Grey Annulus (in ms)
-annulusTime = [1000 1000];%[1200, 2400]; 
+annulusTime = [1000 1000];%[1000 2140]; TIMING CODE
 
 %Cue Time (in ms)
-cueTime = 800;
+cueTime = 500;
 beepDuration = cueTime;
 
 %Pre-Presentation Grey Annulus Time (in ms)
-preStimTime = 200;
+preStimTime = [200 200]; %[50 300]; TIMING CODE
 
 %Stimulus Presentation Time (in ms)
 stimulusTime = 60;
 
-%Post Stimulus Time
-postStimTime = 1000;
-
 %Number of frames to wait before re-drawing
 waitframes = 1;
-
-%number of trials to play
-trials = 10;
 
 timesCue = zeros(trials + 1, blocks); %TIMING CODE
 timesPresentation = timesCue; %TIMING CODE
@@ -204,8 +200,8 @@ timesPreP = timesCue; %TIMING CODE
 timesPostP = timesCue; %TIMING CODE
 timesPreStim = timesCue; %TIMING CODE
 timesStim = timesCue; %TIMING CODE
-timesPostStim = timesCue; %TIMING CODE
 timesISI = timesCue; %TIMING CODE
+
 %--------------------
 % AUDITORY SET UP STUFF
 %--------------------
@@ -239,20 +235,20 @@ respMatrix = nan(3, prealNum, blocks);
 
 %matrix to hold all peaks and valleys of the psychometric function
 %(coherence values where a reversal happened)
-pvMatrix = zeros(runs + 2,blocks);
+pvMatrix = NaN(prealNum,blocks);
 
 %matrix to hold all non-catch trial responses 
 nonCatchMatrix = zeros(prealNum, blocks);
 
 %index value matrix to hold index values of different types of responses
-indexPRespMatrix = [];
-indexNRespMatrix = [];
-indexPRevMatrix = [];
-indexNRevMatrix = [];
-indexCatchMatrix = [];
+historyPRespMatrix = NaN(prealNum, blocks);
+historyNRespMatrix = historyPRespMatrix;
+historyCatchMatrix = historyPRespMatrix;
 
 %matrix to hold calculated psychthresholds
 psychThresh = zeros(blocks, 1);
+
+
 %% --------------------
 % The Experimental Loop
 %--------------------
@@ -262,9 +258,13 @@ for block = 1:blocks
     trial = 1;
     n = 1;
     
+    %matrix to hold RTs for supraliminal catches
+    supraRT = [];
+    
     %variable to keep track if a response was made
     respMade = false;
- 
+    rt = 0;
+    
     %--------------------
     % Initial Trial -  Need to do this first to get initial sign of run
     %--------------------
@@ -273,62 +273,56 @@ for block = 1:blocks
         reverse = 0;
         %if first trial and block 1, present a start screen and wait for a key press.
         if block == 1
-%             DrawFormattedText(window, 'Welcome to Allen''s Up-Down Transformed detection task. Press any key to begin.', 'center', 'center', white);
-%             Screen('Flip', window);
-%             KbStrokeWait;
+%              DrawFormattedText(window, 'Welcome to Allen''s Up-Down Transformed detection task. Press any key to begin.', 'center', 'center', white); %TIMING CODE 
+%              Screen('Flip', window);
+%              KbStrokeWait;
             %else if first trial and not block 1, present an interblock screen and wait for a key press
         elseif block ~= 1
-%             DrawFormattedText(window, ['Finished Block #' num2str(block) - 1 '. Press any key to continue.'], 'center', 'center')
-%             Screen('Flip', window);
-%             KbStrokeWait;
+%              DrawFormattedText(window, ['Finished Block #' num2str(block) - 1 '. Press any key to continue.'], 'center', 'center') %TIMING CODE 
+%              Screen('Flip', window);
+%              KbStrokeWait;
         end
         
         
         %Presenting Grey Annulus
-        vbl = PresentStimulus(annulusTexture, window, 0, ifi, annulusTime(1), annulusTime(2), false, 0, 0, rectCenter);
+        vbl = PresentStimulus(annulusTexture, window, 0, ifi, annulusTime(1), annulusTime(2), false, 0, 0, 0, rectCenter);
         
         timeStart = GetSecs; %TIMING CODE
-        
-       
         cueStart = GetSecs; %TIMING CODE
+        
         %Presenting Cue
         if blockMatrix(1, block) == 1
             %Presenting pure visual cue
-            PresentEfficientAVStimulus(cueTexture, 'nullCue.wav', 0, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
+            PresentEfficientAVStimulus(cueTexture, 'nullCue.wav', 0, window, vbl, ifi, cueTime, 0, 0, 0, 0, 0, rectCenter);
         elseif blockMatrix(1, block) == 2
             %presenting pure audio cue
-            PresentEfficientAVStimulus(annulusTexture, 'auditoryCue.wav', 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
+            PresentEfficientAVStimulus(annulusTexture, 'auditoryCue.wav', 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, 0, rectCenter);
         elseif blockMatrix(1, block) == 3
             %presenting AV cue
-            PresentEfficientAVStimulus(cueTexture, 'auditoryCue.wav', 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
+            PresentEfficientAVStimulus(cueTexture, 'auditoryCue.wav', 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, 0, rectCenter);
         end
+        
         timesCue(trial, block) = (GetSecs - cueStart); %TIMING CODE
-        
         timePreStim = GetSecs;%TIMING CODE
-        %Presenting Pre-Stim Annulus
-        vbl = PresentStimulus(annulusTexture, window, 0, ifi, preStimTime, 0, false, 0, 0, rectCenter);
         
+        %Presenting Pre-Stim Annulus
+        vbl = PresentStimulus(annulusTexture, window, 0, ifi, preStimTime(1), preStimTime(2), false, 0, 0, 0, rectCenter);
         timesPreStim(trial, block) = GetSecs - timePreStim;%TIMING CODE
+        
         %Getting Start Time and Presenting the Stimulus
         tStart = GetSecs;
-        [vbl,respMade,rt]= PresentStimulus(texMat(trial, block), window, vbl, ifi, stimulusTime, 0, true, tStart, respMade, rectCenter);
+        [vbl,respMade,rt]= PresentStimulus(texMat(trial, block), window, vbl, ifi, stimulusTime, 0, true, tStart, respMade, rt, rectCenter);
         timesStim(trial,block) = GetSecs - tStart;%TIMING CODE
-        
-        %Removing Stimulus: Post-Stimulus interval. Participant can make response.
-        timePostStim = GetSecs;%TIMING CODE
-        [vbl,respMade,rt] = PresentStimulus(annulusTexture, window, vbl, ifi, postStimTime, 0, true, tStart, respMade, rectCenter);
-        timesPostStim(trial, block) = GetSecs - timePostStim;%TIMING CODE
         
         %Interstimulus window where participant can make a response about
         %the stimulus that was just played
         timeISI = GetSecs; %TIMING CODE
-        [vbl,respMade,rt] = PresentStimulus(annulusTexture, window, vbl, ifi, annulusTime(1), annulusTime(2), true, tStart, respMade, rectCenter);
+        [vbl,respMade,rt] = PresentStimulus(annulusTexture, window, vbl, ifi, annulusTime(1), annulusTime(2), true, tStart, respMade, rt, rectCenter);
         timesISI(trial, block) = GetSecs - timeISI; %TIMING CODE
-    
         
-        timePostP = GetSecs; %TIMING CODE
         %saving response to respMatrix
         %stimulus #
+        timePostP = GetSecs; %TIMING CODE
         respMatrix(1, trial, block) = stimMat(1, trial, block);
         %1 or 0 for whether or not a response was made
         if respMade == true
@@ -345,15 +339,15 @@ for block = 1:blocks
         %Assigning sign of this trial. -1 for negative. +1 for positive
         if respMade == true
             sign(1, block) = -1;
-            indexPRespMatrix = [indexPRespMatrix trial];
+            historyPRespMatrix(trial, block) = initialCoherence;
         elseif respMade == false
-            indexNRespMatrix = [indexNRespMatrix trial];
+            historyNRespMatrix(trial, block) = initialCoherence;
             sign(1, block) = 1;
         end
         
         %update trial number. 
-        timesPostP(trial, block) = GetSecs - timePostP;
-        timesPresentation(trial, block) = (GetSecs - timeStart); %TIMING CODE   
+        timesPostP(trial, block) = GetSecs - timePostP; %TIMING CODE
+        timesPresentation(trial, block) = (GetSecs - timeStart); %TIMING CODE  
         trial = trial + 1;
          
     end
@@ -375,19 +369,20 @@ for block = 1:blocks
         
         %if this is a catch trial (determined randomly)
         if rand(1) <= catchFrequency
+ 
             if rand(1) <= subFrequency
                 coherence = 0;
                 %catchMat = 1 --> subliminal
                 catchMat(trial, block) = 1;
-                %indexCatchMatrix(:, block) = [indexCatchMatrix(:, block) trial];
             else
-                %coherenceis equal to a random value between 0.5 and 1; 
-                coherence = rand(1)*0.5 + 0.5; 
+                %coherenceis equal to a random value between 0.5 and 1;
+                coherence = rand(1)*0.5 + 0.5;
                 %catchMat = 2 --> supraliminal
                 catchMat(trial, block) = 2;
-            end 
-        else 
-            %updating n: the ntrial number of all NON-Catch trials. 
+            end
+            historyCatchMatrix(trial, block) = coherence;
+        else
+            %updating n: the ntrial number of all NON-Catch trials.
             n = n + 1;
             
             %calculating new coherence level if this is not a catch trial
@@ -414,56 +409,55 @@ for block = 1:blocks
         %used by experimental loop to draw stimuli.
         noiseTexture = Screen('MakeTexture', window, gaborMatrix(:,:,trial));
         texMat(trial, block) = noiseTexture;
-             
+        
         timesPreP(trial, block) = GetSecs - timeStart; %TIMING CODE
         cueStart = GetSecs; %TIMING CODE
+        
         %Presenting Cue
         if blockMatrix(1, block) == 1
             %Presenting pure visual cue
-            PresentEfficientAVStimulus(cueTexture, 'nullCue.wav', 0, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
+            PresentEfficientAVStimulus(cueTexture, 'nullCue.wav', 0, window, vbl, ifi, cueTime, 0, 0, 0, 0, 0, rectCenter);
         elseif blockMatrix(1, block) == 2
             %presenting pure audio cue
-            PresentEfficientAVStimulus(annulusTexture, 'auditoryCue.wav', 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
-        elseif blockMatrix(1, block) == 3
+            PresentEfficientAVStimulus(annulusTexture, 'auditoryCue.wav', 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, 0, rectCenter);
+        elseif blockMatrix(1, block) == 3,
             %presenting AV cue
-            PresentEfficientAVStimulus(cueTexture, 'auditoryCue.wav', 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, rectCenter);
+            PresentEfficientAVStimulus(cueTexture, 'auditoryCue.wav', 0.5, window, vbl, ifi, cueTime, 0, 0, 0, 0, 0, rectCenter);
         end
         
-        
-        timesCue(trial, block) = (GetSecs - cueStart); %TIMING CODE
-        timePreStim = GetSecs;%TIMING CODE
+         timesCue(trial, block) = (GetSecs - cueStart); %TIMING CODE
+                
         %Presenting Pre-Stim Annulus
-        vbl = PresentStimulus(annulusTexture, window, 0, ifi, preStimTime, 0, false, 0, 0, rectCenter);
+        timePreStim = GetSecs; %TIMING CODE
+        vbl = PresentStimulus(annulusTexture, window, 0, ifi, preStimTime(1), preStimTime(2), false, 0, 0, 0, rectCenter);
         timesPreStim(trial, block) = GetSecs - timePreStim;%TIMING CODE
+        
         %Getting Start Time and Presenting the Stimulus
         tStart = GetSecs;
-        [vbl,respMade,rt]= PresentStimulus(texMat(trial, block), window, vbl, ifi, stimulusTime, 0, true, tStart, respMade, rectCenter);
+        [vbl,respMade,rt]= PresentStimulus(texMat(trial, block), window, vbl, ifi, stimulusTime, 0, true, tStart, respMade, rt, rectCenter);
         timesStim(trial,block) = GetSecs - tStart;%TIMING CODE
-        %Removing Stimulus: Post-Stimulus interval. Participant can make response.
-        timePostStim = GetSecs;%TIMING CODE
-        [vbl,respMade,rt] = PresentStimulus(annulusTexture, window, vbl, ifi, postStimTime, 0, true, tStart, respMade, rectCenter);
-        timesPostStim(trial, block) = GetSecs - timePostStim;%TIMING CODE
+
         %Interstimulus window where participant can make a response about
         %the stimulus that was just played
         timeISI = GetSecs; %TIMING CODE
-        [vbl,respMade,rt] = PresentStimulus(annulusTexture, window, vbl, ifi, annulusTime(1), annulusTime(2), true, tStart, respMade, rectCenter);
+        [vbl,respMade,rt] = PresentStimulus(annulusTexture, window, vbl, ifi, annulusTime(1), annulusTime(2), true, tStart, respMade, rt, rectCenter);
         timesISI(trial, block) = GetSecs - timeISI; %TIMING CODE
-        timePostP = GetSecs; %TIMING CODE
         
         %saving response to respMatrix
         %stimulus #
+        timePostP = GetSecs; %TIMING CODE
         respMatrix(1, trial, block) = stimMat(1, trial, block);
         
         %1 or 0 for whether or not a response was made
         if respMade == true
             respMatrix(2, trial, block) = 1;
-            indexPRespMatrix = [indexPRespMatrix trial];
+            historyPRespMatrix(trial, block) = coherence;
             if catchMat(trial, block) == 0
                 nonCatchMatrix(n, block) = 1;             
             end
         else
             respMatrix(2, trial, block) = 0;
-            indexNRespMatrix = [indexNRespMatrix trial];
+            historyNRespMatrix(trial, block) = coherence;
             if catchMat(trial, block) == 0
                 nonCatchMatrix(n, block) = 0;          
             end
@@ -502,7 +496,7 @@ for block = 1:blocks
                 index = n-maxSizeUp + 1;
                 if index <= 0
                     index = 1;
-                    end 
+                end 
                 for sequence = 1:size(upGroup,1)
                     %setting conditionIndex to accomodate for NaNs in downGroup and upGroup
                     conditionIndex = upStartingIndex(sequence);     
@@ -529,45 +523,58 @@ for block = 1:blocks
             %reversal is a downgroup
             if reverse == 1
                 sign(n, block) = -1;
-                indexNRevMatrix = [indexNRevMatrix trial];
             %reversal is an upgroup
             elseif reverse == 2
                 sign(n, block) = 1;
-                indexPRevMatrix = [indexPRevMatrix trial];
             else
                 sign(n, block) = sign(n - 1, block);
                 if sign(n, block) == 1
-                    indexPRevMatrix = [indexPRevMatrix trial];
                 elseif sign(n, block) == -1
-                    indexNRevMatrix = [indexNRevMatrix trial];
                 end
             end
         end
         
         timesPresentation(trial, block) = (GetSecs - timeStart); %TIMING CODE 
-        timesPostP(trial,block) = GetSecs - timePostP;
+        timesPostP(trial,block) = GetSecs - timePostP; %TIMING CODE       
         trial = trial + 1;
     end
 
 %Calculating psychometric threshold using Wetherill method
 numReversals = 0;
 for i = 1:numel(pvMatrix(:,block))
-    if pvMatrix(i, block) ~= 0
+    if ~isnan(pvMatrix(i, block))
         numReversals = numReversals + 1;
     end
 end
-psychThresh(block) = sum(pvMatrix(:,block)) / numReversals;
+
+psychThresh(block) = nansum(pvMatrix(:,block)) / numReversals;
 blockMatrix(2, block) = psychThresh(block);
 blockMatrix(3, block) = mean(supraRT);
 
 
-% DrawFormattedText(window, 'Block Finished! Press any key to continue.','center', 'center', white, window);
+% DrawFormattedText(window, 'Block Finished! Press any key to continue.','center', 'center', white, window); %TIMING CODE
 % Screen('Flip', window);
 % KbStrokeWait;
-
-end
-
-
+%
+% %--------------------
+% % Plotting Run History %TIMING CODE
+% %--------------------
+% figure();
+% 
+% 
+% %setting dimmensions of plot
+% set(gca, 'xlim', [0 trial], 'ylim', [0 1]);
+% 
+% %plotting
+% %turning on hold
+% hold on;
+% plot(1:prealNum, historyPRespMatrix(:, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'g');
+% plot(1:prealNum, historyNRespMatrix(:, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'r');
+% plot(1:prealNum, historyCatchMatrix(:, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'none');
+% title(['Block #' num2str(block)]);
+% 
+% 
+ end
 
 
 %end of experiment screen
@@ -576,70 +583,35 @@ Screen('Flip', window);
 
 %closes all the windows upon key press
 KbStrokeWait;
-close all;
 sca;
 
 %% ------------------
-%  Calculating Averages and SDs on times Matrices
+%  Calculating Averages on times Matrices %TIMING CODE
 %--------------------
-timesCue(11, :) = [NaN NaN NaN];
-timesCue(12, :) = mean(timesCue(1:trials, :));
-timesCue(13, :) = std(timesCue(1:trials, :));
+for i = 1:blocks
+    for j = 1:trials
+        timesCue(trials + 1, i) = timesCue(trials + 1, i) + timesCue(j, i);
+        timesISI(trials + 1, i) = timesISI(trials + 1, i) + timesISI(j, i);
+        timesPostP(trials + 1, i) = timesPostP(trials + 1, i) + timesPostP(j, i);
+        timesPreP(trials + 1, i) = timesPreP(trials + 1, i) + timesPreP(j, i);
+        timesPreStim(trials + 1, i) = timesPreStim(trials + 1, i) + timesPreStim(j, i);
+        timesPresentation(trials + 1, i) = timesPresentation(trials + 1, i) + timesPresentation(j, i);
+        timesStim(trials + 1, i) = timesStim(trials + 1, i) + timesStim(j, i);
+    end
+        timesCue(trials + 1, i) = timesCue(trials + 1, i) / trials;
+        timesISI(trials + 1, i) = timesISI(trials + 1, i) / trials;
+        timesPostP(trials + 1, i) = timesPostP(trials + 1, i) / trials;
+        timesPreP(trials + 1, i) = timesPreP(trials + 1, i) / trials;
+        timesPreStim(trials + 1, i) = timesPreStim(trials + 1, i) / trials;
+        timesPresentation(trials + 1, i) = timesPresentation(trials + 1, i) / trials;
+        timesStim(trials + 1, i) = timesStim(trials + 1, i) / trials;
+end
+%% ------------------
+% SAVING DATA
+%--------------------
+%filesaving
+filepath = 'C:\Users\achen52\Desktop\Data';
+filename = [participant '_timing' '.mat']; %TIMING CODE
 
-timesISI(11, :) = [NaN NaN NaN];
-timesISI(12, :) = mean(timesISI(1:trials, :));
-timesISI(13, :) = std(timesISI(1:trials, :));
+save(fullfile(filepath, filename), 'timesCue','timesISI', 'timesPostP', 'timesPreP', 'timesPreStim', 'timesPresentation', 'timesStim');
 
-timesPostP(11, :) = [NaN NaN NaN];
-timesPostP(12, :) = mean(timesPostP(1:trials, :));
-timesPostP(13, :) = std(timesPostP(1:trials, :));
-
-timesPostStim(11, :) = [NaN NaN NaN];
-timesPostStim(12, :) = mean(timesPostStim(1:trials, :));
-timesPostStim(13, :) = std(timesPostStim(1:trials, :));
-
-timesPreP(11, :) = [NaN NaN NaN];
-timesPreP(12, :) = mean(timesPreP(1:trials, :));
-timesPreP(13, :) = std(timesPreP(1:trials, :));
-
-timesPresentation(11, :) = [NaN NaN NaN];
-timesPresentation(12, :) = mean(timesPresentation(1:trials, :));
-timesPresentation(13, :) = std(timesPresentation(1:trials, :));
-
-timesPreStim(11, :) = [NaN NaN NaN];
-timesPreStim(12, :) = mean(timesPreStim(1:trials, :));
-timesPreStim(13, :) = std(timesPreStim(1:trials, :));
-
-timesStim(11, :) = [NaN NaN NaN];
-timesStim(12, :) = mean(timesStim(1:trials, :));
-timesStim(13, :) = std(timesStim(1:trials, :));
-%% 
-% %% --------------------
-% % Plotting Run History
-% %--------------------
-% 
-% %turning on hold
-% hold on;
-% 
-% %setting dimmensions of plot
-% set(gca, 'xlim', [0 trial], 'ylim', [0 1]);
-% 
-% %plotting
-% %trialHistory = plot(indexPRespMatrix, stimMat(2, indexPRespMatrix), indexNRespMatrix, stimMat(2, indexNRespMatrix), indexPRevMatrix, stimMat(2, indexPRevMatrix), indexNRevMatrix, stimMat(2, indexNRevMatrix), indexCatchMatrix, stimMat(2,indexCatchMatrix),'LineStyle', 'none');
-% trialHistory = plot(indexPRespMatrix, stimMat(2, indexPRespMatrix, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'g');
-% trialHistory = plot(indexNRespMatrix, stimMat(2, indexNRespMatrix, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'r');
-% 
-% %setting positives to have + symbol and negatives to have - symbol ;
-% 
-% % 
-% % trialHistory(3).Marker = 'o';
-% % trialHistory(3).MarkerFaceColor = 'g';
-% % trialHistory(3).MarkerEdgeColor = 'none';
-% % 
-% % trialHistory(4).Marker = 'o';
-% % trialHistory(4).MarkerFaceColor = 'r';
-% % trialHistory(4).MarkerEdgeColor = 'none';
-% % 
-% % trialHistory(5).Marker = 'o';
-% % trialHistory(5).MarkerFaceColor = 'b';
-% % trialHistory(5).MarkerEdgeColor = 'none';
