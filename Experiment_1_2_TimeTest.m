@@ -22,7 +22,7 @@ PsychDefaultSetup(2);
 
 % Set the screen number to the external secondary monitor if there is one
 % connected
-screenNumber = max(Screen('Screens'));
+screenNumber = 1;%max(Screen('Screens'));
 
 % Define black, white and grey
 white = WhiteIndex(screenNumber);
@@ -213,7 +213,7 @@ InitializePsychSound(1);
 
 % Number of channels and sample rate
 nrchannels = 2;
-sampleFreq = 44100;
+sampleFreq = 48000;
 
 %Volume %
 volume = 0.5;
