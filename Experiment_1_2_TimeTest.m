@@ -12,7 +12,7 @@ trials = 10; %How many trials per block %TIMING CODE
 %--------------------
 % Initial Initial Set-up Stuff
 %--------------------
-participant = 'test1';
+participant = 'test2';
 
 %--------------------
 % Initial Set-up Stuff
@@ -185,7 +185,7 @@ UPDCoherenceMat(1, :) = initialCoherence;
 annulusTime = [1000 1000];%[1000 2140]; TIMING CODE
 
 %Cue Time (in ms)
-cueTime = 500;
+cueTime = 512;
 beepDuration = cueTime;
 
 %Pre-Presentation Grey Annulus Time (in ms)
@@ -642,7 +642,7 @@ sca;
 % SAVING DATA
 %--------------------
 %filesaving
-filepath = 'C:\Users\achen52\Desktop\Data';
+filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
 filename = [participant '_timing' '.mat']; %TIMING CODE
 
 save(fullfile(filepath, filename), 'timesCue','timesISI', 'timesPostP', 'timesPreP', 'timesPreStim', 'timesPresentation', 'timesStim');
