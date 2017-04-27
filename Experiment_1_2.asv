@@ -64,6 +64,8 @@ blockMatrix = repmat([1:3; 0 0 0; 0 0 0], 1, blocksPerCondition);
     %1 - Visual
     %2 - Auditory
     %3 - Audiovisual
+%blockMatrix(2,:) = psychThreshold
+%blockMatrix(3,:) = average RT
 blockMatrix(1,1:3) = [1 2 3];
 blockMatrix(1,4:6) = [2 3 1];
 blockMatrix(1,7:9) = [3 1 2];
@@ -193,6 +195,14 @@ stimulusTime = 60;
 %Number of frames to wait before re-drawing
 waitframes = 1;
 
+timesCue = zeros(trials + 1, blocks); %TIMING CODE
+timesPresentation = timesCue; %TIMING CODE
+timesPreP = timesCue; %TIMING CODE
+timesPostP = timesCue; %TIMING CODE
+timesPreStim = timesCue; %TIMING CODE
+timesStim = timesCue; %TIMING CODE
+timesISI = timesCue; %TIMING CODE
+
 %--------------------
 % AUDITORY SET UP STUFF
 %--------------------
@@ -239,11 +249,26 @@ historyCatchMatrix = historyPRespMatrix;
 %matrix to hold calculated psychthresholds
 psychThresh = zeros(blocks, 1);
 
+%History Matrix
+% Matrix to keep all useful information about a single trial in one place. 
+%   Row 1: block type
+%   Row 2: 1 for subliminal catch trial, 2 for a supraliminal catch trial, 0 for not a catch trial
+%   Row 3: Coherence
+%   Row 4: 1 for respMade 0 for no RespMade
+%   Row 5: RT
+%   Row 6: 1 for positive sign. -1 for negative sign.
+historyMatrix = NaN(6,prealNum, blocks);
 
+%updating first trial info into history matrix
+historyMatrix(2, 1, :) = 0; %catch trials set to 0 for the first trial of each block
+historyMatrix(3, 1, :) = initialCoherence; %initialCoherence set for first tiral of each block
 %% --------------------
 % The Experimental Loop
 %--------------------
 for block = 1:blocks
+    %updating block number in history matrix
+    historyMatrix(1, :, block) = blockMatrix(block);
+    
     %counter for how many trials have been played and how many threshold
     %trials there have been (n, how many non-catch trials there have been
     trial = 1;
@@ -269,9 +294,9 @@ for block = 1:blocks
              KbStrokeWait;
             %else if first trial and not block 1, present an interblock screen and wait for a key press
         elseif block ~= 1
-%              DrawFormattedText(window, ['Finished Block #' num2str(block) - 1 '. Press any key to continue.'], 'center', 'center') %TIMING CODE 
-%              Screen('Flip', window);
-%              KbStrokeWait;
+             DrawFormattedText(window, ['Finished Block #' num2str(block) - 1 '. Press any key to continue.'], 'center', 'center')
+             Screen('Flip', window);
+             KbStrokeWait;
         end
         
         
@@ -319,21 +344,26 @@ for block = 1:blocks
         if respMade == true
             respMatrix(2, trial, block) = 1;
             nonCatchMatrix(1, block) = 1;
+            historyMatrix(4, trial, block) = 1;
         else
             respMatrix(2, trial, block) = 0;
             nonCatchMatrix(1, block) = 0;
+            historyMatrix(4, trial, block) = 0;
         end
         
         %assigning rt
         respMatrix(3, trial, block) = rt;
+        historyMatrix(5, trial, block) = rt;
         
         %Assigning sign of this trial. -1 for negative. +1 for positive
         if respMade == true
             sign(1, block) = -1;
+            historyMatrix(6, trial, block) = -1;
             historyPRespMatrix(trial, block) = initialCoherence;
         elseif respMade == false
             historyNRespMatrix(trial, block) = initialCoherence;
             sign(1, block) = 1;
+            historyMatrix(6, trial, block) = 1;
         end
         
         %update trial number. 
@@ -349,7 +379,7 @@ for block = 1:blocks
     %while a response is made when the sign is negatve or a response is
     %not made when the sign is positive and trial number is greater than one. (While a response is not a reversal and greater than one)
     run = 1;
-    while trial <= trials
+    while run <= runs %TIMING CODE
         timeStart = GetSecs; %TIMING CODE
         %setting respMade to false
         respMade = false;
@@ -365,14 +395,17 @@ for block = 1:blocks
                 coherence = 0;
                 %catchMat = 1 --> subliminal
                 catchMat(trial, block) = 1;
+                historyMatrix(2, trial, block) = 1;
             else
                 %coherenceis equal to a random value between 0.5 and 1;
                 coherence = rand(1)*0.5 + 0.5;
                 %catchMat = 2 --> supraliminal
                 catchMat(trial, block) = 2;
+                historyMatrix(2, trial, block) = 2;
             end
             historyCatchMatrix(trial, block) = coherence;
         else
+            historyMatrix(2, trial, block) = 0;
             %updating n: the ntrial number of all NON-Catch trials.
             n = n + 1;
             
@@ -387,7 +420,8 @@ for block = 1:blocks
             coherence = UPDCoherenceMat(n, block);
         end
         stimMat(2, trial, block) = coherence;
-       
+        historyMatrix(3, trial, block) = coherence;
+        
         %creating stimulus
         %loop to draw circle with different coherence values for each stimulus type
         %for each stim condition
@@ -442,12 +476,14 @@ for block = 1:blocks
         %1 or 0 for whether or not a response was made
         if respMade == true
             respMatrix(2, trial, block) = 1;
+            historyMatrix(4, trial, block) = 1;
             historyPRespMatrix(trial, block) = coherence;
             if catchMat(trial, block) == 0
                 nonCatchMatrix(n, block) = 1;             
             end
         else
             respMatrix(2, trial, block) = 0;
+            historyMatrix(4, trial, block) = 0;
             historyNRespMatrix(trial, block) = coherence;
             if catchMat(trial, block) == 0
                 nonCatchMatrix(n, block) = 0;          
@@ -456,7 +492,7 @@ for block = 1:blocks
         
         %assigning rt
         respMatrix(3, trial, block) = rt;
-        
+        historyMatrix(5, trial, block) = rt;
         
         %If this is not a catch trial, check to see if the UpGroup or
         %DownGroup condition has been satisfied.
@@ -514,14 +550,14 @@ for block = 1:blocks
             %reversal is a downgroup
             if reverse == 1
                 sign(n, block) = -1;
+                historyMatrix(6, trial, block) = -1;
             %reversal is an upgroup
             elseif reverse == 2
                 sign(n, block) = 1;
+                historyMatrix(6, trial, block) = 1;
             else
                 sign(n, block) = sign(n - 1, block);
-                if sign(n, block) == 1
-                elseif sign(n, block) == -1
-                end
+                historyMatrix(6, trial, block) = sign(n - 1, block);
             end
         end
         
@@ -543,30 +579,29 @@ blockMatrix(2, block) = psychThresh(block);
 blockMatrix(3, block) = mean(supraRT);
 
 
-% DrawFormattedText(window, 'Block Finished! Press any key to continue.','center', 'center', white, window); %TIMING CODE
-% Screen('Flip', window);
-% KbStrokeWait;
-%
-% %--------------------
-% % Plotting Run History %TIMING CODE
-% %--------------------
-% figure();
-% 
-% 
-% %setting dimmensions of plot
-% set(gca, 'xlim', [0 trial], 'ylim', [0 1]);
-% 
-% %plotting
-% %turning on hold
-% hold on;
-% plot(1:prealNum, historyPRespMatrix(:, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'g');
-% plot(1:prealNum, historyNRespMatrix(:, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'r');
-% plot(1:prealNum, historyCatchMatrix(:, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'none');
-% title(['Block #' num2str(block)]);
-% 
-% 
- end
+DrawFormattedText(window, 'Block Finished! Press any key to continue.','center', 'center', white, window);
+Screen('Flip', window);
+KbStrokeWait;
 
+%--------------------
+% Plotting Run History 
+%--------------------
+figure();
+
+
+%setting dimmensions of plot
+set(gca, 'xlim', [0 trial], 'ylim', [0 1]);
+
+%plotting
+%turning on hold
+hold on;
+plot(1:prealNum, historyPRespMatrix(:, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'g');
+plot(1:prealNum, historyNRespMatrix(:, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'r');
+plot(1:prealNum, historyCatchMatrix(:, block),'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'none');
+title(['Block #' num2str(block)]);
+
+
+ end
 
 %end of experiment screen
 PsychPortAudio('Close', pahandle);
@@ -580,17 +615,17 @@ sca;
 %% ------------------
 %  Calculating Averages on times Matrices %TIMING CODE
 %--------------------
-        timesCue(trials + 1, :) = NaN(1, blocks);
-        timesCue(trials + 2, :) = mean(timesCue(1:trials, :));
-        timesCue(trials + 3, :) = std(timesCue(1:trials, :));
+        timesCue(trial + 1, :) = NaN(1, blocks);
+        timesCue(trial + 2, :) = mean(timesCue(1:trials, :));
+        timesCue(trial + 3, :) = std(timesCue(1:trials, :));
         
-        timesISI(trials + 1, :) = NaN(1, blocks);
-        timesISI(trials + 2, :) = mean(timesISI(1:trials, :));
-        timesISI(trials + 3, :) = std(timesISI(1:trials, :));
+        timesISI(trial + 1, :) = NaN(1, blocks);
+        timesISI(trial + 2, :) = mean(timesISI(1:trials, :));
+        timesISI(trial + 3, :) = std(timesISI(1:trials, :));
         
-        timesPostP(trials + 1, :) = NaN(1, blocks);
-        timesPostP(trials + 2, :) = mean(timesPostP(1:trials, :));
-        timesPostP(trials + 3, :) = std(timesPostP(1:trials, :));
+        timesPostP(trial + 1, :) = NaN(1, blocks);
+        timesPostP(trial + 2, :) = mean(timesPostP(1:trials, :));
+        timesPostP(trial + 3, :) = std(timesPostP(1:trials, :));
         
         timesPreP(trials + 1, :) = NaN(1, blocks);
         timesPreP(trials + 2, :) = mean(timesPreP(1:trials, :));
@@ -612,7 +647,11 @@ sca;
 %--------------------
 %filesaving
 filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
-filename = [participant '_timing' '.mat']; %TIMING CODE: remove '_timing'
+filepathTiming = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
+filename = [participant '.mat']; 
+filenameTiming = [participant '_timing' '.mat'];
 
-save(fullfile(filepath, filename), 'timesCue','timesISI', 'timesPostP', 'timesPreP', 'timesPreStim', 'timesPresentation', 'timesStim');
+save(fullfile(filepath, filename), 'blockMatrix','stimMat', 'respMatrix', 'historyPRespMatrix', 'historyNRespMatrix', 'historyCatchMatrix', 'gaborMatrix');
+save(fullfile(filepathTiming, filenameTiming), 'timesCue','timesISI', 'timesPostP', 'timesPreP', 'timesPreStim', 'timesPresentation', 'timesStim');
+
 

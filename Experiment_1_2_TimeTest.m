@@ -67,6 +67,8 @@ blockMatrix = repmat([1:3; 0 0 0; 0 0 0], 1, blocksPerCondition);
     %1 - Visual
     %2 - Auditory
     %3 - Audiovisual
+%blockMatrix(2,:) = psychThreshold
+%blockMatrix(3,:) = average RT
 blockMatrix(1,1:3) = [1 2 3];
 blockMatrix(1,4:6) = [2 3 1];
 blockMatrix(1,7:9) = [3 1 2];
@@ -140,17 +142,17 @@ A = 0.75; %amplitude variable
 %Annulus Parameters
 annulusDiameter = 300;
 annulusWidth = 10;
-annulusColor = 0.75;
+annulusColor = .25;
 annulusBackgroundColor = 0.5;
 
 %Cue Information
-cueColor = 1;
+cueColor = .75;
 cueFrequency = 1000;
 
 annulusMatrix = CreateAnnulus(annulusDiameter, annulusWidth, annulusColor, annulusBackgroundColor);
 annulusTexture = Screen('MakeTexture', window, annulusMatrix);
 
-cueMatrix = CreateAnnulus(annulusDiameter, annulusWidth, 1, annulusBackgroundColor);
+cueMatrix = CreateAnnulus(annulusDiameter, annulusWidth, cueColor, annulusBackgroundColor);
 cueTexture= Screen('MakeTexture', window, cueMatrix);
 
 %Creating stimuli #1
@@ -250,11 +252,27 @@ historyCatchMatrix = historyPRespMatrix;
 %matrix to hold calculated psychthresholds
 psychThresh = zeros(blocks, 1);
 
+%History Matrix
+% Matrix to keep all useful information about a single trial in one place. 
+%   Row 1: block type
+%   Row 2: 1 for catch trial, 0 for not a catch trial
+%   Row 3: Coherence
+%   Row 4: 1 for respMade 0 for no RespMade
+%   Row 5: RT
+%   Row 6: 1 for positive sign. -1 for negative sign.
+historyMatrix = NaN(6,prealNum, blocks);
+
+%updating first trial info into history matrix
+historyMatrix(2, 1, :) = 0; %catch trials set to 0 for the first trial of each block
+historyMatrix(3, 1, :) = initialCoherence; %initialCoherence set for first tiral of each block
 
 %% --------------------
 % The Experimental Loop
 %--------------------
 for block = 1:blocks
+    %updating block number in history matrix
+    historyMatrix(1, :, block) = blockMatrix(block);
+    
     %counter for how many trials have been played and how many threshold
     %trials there have been (n, how many non-catch trials there have been
     trial = 1;
@@ -330,21 +348,26 @@ for block = 1:blocks
         if respMade == true
             respMatrix(2, trial, block) = 1;
             nonCatchMatrix(1, block) = 1;
+            historyMatrix(4, trial, block) = 1;
         else
             respMatrix(2, trial, block) = 0;
             nonCatchMatrix(1, block) = 0;
+            historyMatrix(4, trial, block) = 0;
         end
         
         %assigning rt
         respMatrix(3, trial, block) = rt;
+        historyMatrix(5, trial, block) = rt;
         
         %Assigning sign of this trial. -1 for negative. +1 for positive
         if respMade == true
             sign(1, block) = -1;
+            historyMatrix(6, trial, block) = -1;
             historyPRespMatrix(trial, block) = initialCoherence;
         elseif respMade == false
             historyNRespMatrix(trial, block) = initialCoherence;
             sign(1, block) = 1;
+            historyMatrix(6, trial, block) = 1;
         end
         
         %update trial number. 
@@ -371,19 +394,22 @@ for block = 1:blocks
         
         %if this is a catch trial (determined randomly)
         if rand(1) <= catchFrequency
- 
+            
             if rand(1) <= subFrequency
                 coherence = 0;
                 %catchMat = 1 --> subliminal
                 catchMat(trial, block) = 1;
+                historyMatrix(2, trial, block) = 1;
             else
                 %coherenceis equal to a random value between 0.5 and 1;
                 coherence = rand(1)*0.5 + 0.5;
                 %catchMat = 2 --> supraliminal
                 catchMat(trial, block) = 2;
+                historyMatrix(2, trial, block) = 2;
             end
             historyCatchMatrix(trial, block) = coherence;
         else
+            historyMatrix(2, trial, block) = 0;
             %updating n: the ntrial number of all NON-Catch trials.
             n = n + 1;
             
@@ -398,6 +424,7 @@ for block = 1:blocks
             coherence = UPDCoherenceMat(n, block);
         end
         stimMat(2, trial, block) = coherence;
+        historyMatrix(3, trial, block) = coherence;
        
         %creating stimulus
         %loop to draw circle with different coherence values for each stimulus type
@@ -453,12 +480,14 @@ for block = 1:blocks
         %1 or 0 for whether or not a response was made
         if respMade == true
             respMatrix(2, trial, block) = 1;
+            historyMatrix(4, trial, block) = 1;
             historyPRespMatrix(trial, block) = coherence;
             if catchMat(trial, block) == 0
                 nonCatchMatrix(n, block) = 1;             
             end
         else
             respMatrix(2, trial, block) = 0;
+            historyMatrix(4, trial, block) = 0;
             historyNRespMatrix(trial, block) = coherence;
             if catchMat(trial, block) == 0
                 nonCatchMatrix(n, block) = 0;          
@@ -467,7 +496,7 @@ for block = 1:blocks
         
         %assigning rt
         respMatrix(3, trial, block) = rt;
-        
+        historyMatrix(5, trial, block) = rt;
         
         %If this is not a catch trial, check to see if the UpGroup or
         %DownGroup condition has been satisfied.
@@ -525,14 +554,14 @@ for block = 1:blocks
             %reversal is a downgroup
             if reverse == 1
                 sign(n, block) = -1;
+                historyMatrix(6, trial, block) = -1;
             %reversal is an upgroup
             elseif reverse == 2
                 sign(n, block) = 1;
+                historyMatrix(6, trial, block) = 1;
             else
                 sign(n, block) = sign(n - 1, block);
-                if sign(n, block) == 1
-                elseif sign(n, block) == -1
-                end
+                historyMatrix(6, trial, block) = sign(n - 1, block);
             end
         end
         
