@@ -1,6 +1,8 @@
-function [vbl,respMade,rt] = PresentEfficientAVStimulus(stimulusTexture, WAVFile, volume, window, vbl, ifi, Duration1, Duration2, GetResp, tStart, PreviousRespMade, rt, rectCenter)
+function [vbl,respMade,rt] = PresentMoreEfficientAVStimulus(stimulusTexture, WAVFile, pahandle, volume, window, vbl, ifi, Duration1, Duration2, GetResp, tStart, PreviousRespMade, rt, rectCenter)
 %Plays an audiovisual stimulus for the given Duration in ms. Will generate a vbl if no vbl is given. Has ability to receive user input in form of key press or rt
-%   EFFICIENCY: improves upon PresentAVStimulus by taking a WAVFile as input rather than generating a beep object. 
+%   EFFICIENCY: improves upon PresentEfficientAVStimulus by not calling PsychPortAudio('Open') during function. Instead, the audio device is opened before the
+%   experimental loop. Instead, this function simply uses PsychPortAudio('Start') and PsychPortAudio('Stop') to manage timing of the auditory stimulus. Remember to call
+%   PsychPortAudio('Close', pahandle) before main code terminates
 %
 %   stimulusTexture - texture of the stimulus that you wish to present Use Screen('MakeTexture') to convert matrix to texture. 
 %   WAVFile - name of the 'WAVfile.wav' 
@@ -51,7 +53,6 @@ else
     timeFrames = round(timeMSecs ./ ifi);
 end
 
-pahandle = PsychPortAudio('Open', [], 1, 1, sampleFreq, nrchannels, [], [], [], []);
 PsychPortAudio('Volume', pahandle, volume);
 PsychPortAudio('FillBuffer', pahandle, y);
 
@@ -101,7 +102,6 @@ else
         end
     end
 end
-PsychPortAudio('Close', pahandle);
+PsychPortAudio('Stop', pahandle);
 end
-
 

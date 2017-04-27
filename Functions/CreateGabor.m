@@ -1,7 +1,7 @@
 function gabor = CreateGabor( Gabor_Diameter, Sigma, Lambda,  Orientation, Phase, Amplitude)
-%Creates an array of pixel values for a Gabor given its parameters. 
-%   Gabor_Diameter: diameter(length/width of square)of the gabor in pixels
-%   Sigma: standard deviation of the gaussian window
+%Creates an array of pixel values for a Gabor given its parameters. The floor background color is gray. 
+%   Gabor_Diameter: diameter(length or width of the square) of the gabor in pixels
+%   Sigma: standard deviation of the 2D gaussian
 %   Lambda: wavelength (number of pixels per cycle)
 %   Orientation: orientation of the gabor in radians 0 - 2pi. 'r' can be inputted to make the orientation random
 %   Phase: phase of the gabor in radians 0 - 2pi. 'r' can be inputted to make the phase random

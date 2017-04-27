@@ -1,9 +1,9 @@
 function [vbl,respMade,rt] = PresentEfficientAVStimulus(stimulusTexture, WAVFile, volume, window, vbl, ifi, Duration1, Duration2, GetResp, tStart, PreviousRespMade, rt, rectCenter)
 %Plays an audiovisual stimulus for the given Duration in ms. Will generate a vbl if no vbl is given. Has ability to receive user input in form of key press or rt
-%   EFFICIENCY: improves upon PresentAVStimulus by taking a WAVFile as input rather than generating a beep object. 
+%   EFFICIENCY: improves upon PresentAVStimulus by calling a WAVFiel
 %
 %   stimulusTexture - texture of the stimulus that you wish to present Use Screen('MakeTexture') to convert matrix to texture. 
-%   WAVFile - name of the 'WAVfile.wav' 
+%   Frequency - frequency of the auditory stimuli in hertz
 %   Volume - volume of the auditory stimuli as a fraction 0-1. (0.5 for half volume)
 %   window: window ptr of the window to present the stimuli. [window, windowRect] = PsychImaging('OpenWindow', screenNumber, 0.5, [], 32, 2,...
 %       [], [],  kPsychNeed32BPCFloat);

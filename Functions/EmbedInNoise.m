@@ -1,9 +1,8 @@
 function gaborMatrix = EmbedInNoise(GaborMatrix, Coherence, ProbabilityGaussian, GaussianMatrix)
-%EmbedInNoise embeds a gabor matrix in noise. It has an additional function of trimming the gabor into a circle
+%EmbedInNoise embeds a gabor matrix in noise. It has an additional function of trimming the gabor into a circle with diameter = GaborMatrix
 %   GaborMatrix - 2D matrix that holds the pixel values of the Gabor that one wants embedded in noise
 %   Coherence - % of the pixels that are not turned into noise
-%   Trim - 1 or 0 is given. If 1 is given, the gabor is trimmed into a circle with diameter = to Gabor_Diameter
-%   ProbabilityGaussian - 1 or 0 is given. if 1, the noise will be in a probability gaussian
+%   ProbabilityGaussian - 1 or 0 is given. if 1, the noise will be in a probability gaussian. 
 %   Gaussian values Mat for the probability gaussian if there is a probability Gaussian
 %  
 

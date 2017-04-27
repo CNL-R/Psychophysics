@@ -1,14 +1,14 @@
 function stimuliMatrix = EmbedInApperature(InnerMatrix, Type, SideLengthX, SideLengthY, Color, BackgroundColor)
-%Embeds one matrix in the center of an apperture that is created by the function. 
+%Calls CreateApperature to make an apperature and embeds 'InnerMatrix' in the center 
 %   InnerMatrix- pixel value matrix of the inner matrix
 %   Type - 'c' for circle, anything else for rectangle
-%   SideLengthX - in pixels
-%   SideLengthY- in pixels
+%   SideLengthX - length X of the apperature in pixels
+%   SideLengthY- length Y of the apperature in pixels
 %   Color - color of the apperature. 'n' for noise
 %   BackgroundColor - color behind the circle if 'c' is chosen for Type. 
 
 [stimLengthY stimLengthX] = size(InnerMatrix);
-%initializing variables created in CreateApperature
+%initializing variables used in CreateApperature
 appXCenter = SideLengthX/2;
 appYCenter = SideLengthY/2;
 
@@ -21,3 +21,5 @@ stimuliMatrix((appXCenter-0.5*stimLengthX):(appXCenter+0.5*stimLengthX - 1),(app
 
 end
 
+%Can be made more efficient by taking apperature matrix as an input and embed InnerMatrix into the given apperature matrix rather than generating an apperature.
+%This is a relatively easy fix, as CreateApperature is a standalone function. 

@@ -1,3 +1,8 @@
+%Creates pixel matrix of an annulus given diameter, annuluswidth, color and
+%background color
+%Diameter - given in pixels
+%AnnulusWidth - given in pixels
+
 function annulusMatrix = CreateAnnulus(Diameter, AnnulusWidth, AnnulusColor, BackgroundColor)
 
 %Drawing annulus. 

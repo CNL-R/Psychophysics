@@ -15,3 +15,4 @@ function [] = PresentBeep(Frequency, Duration, NumberChannels, Volume)
     PsychPortAudio('Close', pahandle);
 end
 
+%for further optimizing, allow for user response. 
