@@ -1,6 +1,5 @@
 %Changes in 1_2: Opening Psychport at the beginning of the experiment and
-%keeping it open throughout the whole thing for efficiency. 
-% - Adding Portcodes
+%keeping it open throughout the whole thing for efficiency. Using PresentMoreEfficientAVStimulus.mat for presentation of cues. 
 
 % Clear the workspace and the screen
 sca;
@@ -9,10 +8,11 @@ clearvars;
 
 %TIMING VERSION of EXPERIMENT 1_2
 trials = 10; %How many trials per block %TIMING CODE
-
+%all timing code has %TIMING CODE commented to the right of it. 
 %--------------------
 % Initial Initial Set-up Stuff
 %--------------------
+%name of the participant.
 participant = 'test2';
 
 %--------------------
@@ -67,7 +67,6 @@ blockMatrix = repmat([1:3; 0 0 0; 0 0 0], 1, blocksPerCondition);
     %1 - Visual
     %2 - Auditory
     %3 - Audiovisual
-
 blockMatrix(1,1:3) = [1 2 3];
 blockMatrix(1,4:6) = [2 3 1];
 blockMatrix(1,7:9) = [3 1 2];
@@ -165,7 +164,6 @@ gaborMatrix(:, :, 1) = EmbedInAnnulus(gaborMatrix(:, :, 1), annulusWidth, annulu
 xPos = xCenter;
 yPos = yCenter;
 baseRect = [0 0 appX appY];
-
 %Centering texture in center of window
 rectCenter = CenterRectOnPointd(baseRect, xPos, yPos);
 
@@ -180,7 +178,7 @@ texMat(1, :) = noiseTexture;
 UPDCoherenceMat = zeros(prealNum, 1, blocks);
 UPDCoherenceMat(1, :) = initialCoherence;
 %--------------------
-% Timing Information %TIMING CODE: DeScramble Intervals
+% Timing Information %TIMING CODE: DeScrambled Intervals
 %--------------------
 %Grey Annulus (in ms)
 annulusTime = [1000 1000];%[1000 2140]; TIMING CODE
@@ -593,25 +591,6 @@ sca;
 %% ------------------
 %  Calculating Averages on times Matrices %TIMING CODE
 %--------------------
-% for i = 1:blocks
-%     for j = 1:trials
-%         timesCue(trials + 1, i) = timesCue(trials + 1, i) + timesCue(j, i);
-%         timesISI(trials + 1, i) = timesISI(trials + 1, i) + timesISI(j, i);
-%         timesPostP(trials + 1, i) = timesPostP(trials + 1, i) + timesPostP(j, i);
-%         timesPreP(trials + 1, i) = timesPreP(trials + 1, i) + timesPreP(j, i);
-%         timesPreStim(trials + 1, i) = timesPreStim(trials + 1, i) + timesPreStim(j, i);
-%         timesPresentation(trials + 1, i) = timesPresentation(trials + 1, i) + timesPresentation(j, i);
-%         timesStim(trials + 1, i) = timesStim(trials + 1, i) + timesStim(j, i);
-%     end
-%         timesCue(trials + 1, i) = timesCue(trials + 1, i) / trials;
-%         timesISI(trials + 1, i) = timesISI(trials + 1, i) / trials;
-%         timesPostP(trials + 1, i) = timesPostP(trials + 1, i) / trials;
-%         timesPreP(trials + 1, i) = timesPreP(trials + 1, i) / trials;
-%         timesPreStim(trials + 1, i) = timesPreStim(trials + 1, i) / trials;
-%         timesPresentation(trials + 1, i) = timesPresentation(trials + 1, i) / trials;
-%         timesStim(trials + 1, i) = timesStim(trials + 1, i) / trials;
-% end
-
         timesCue(trials + 1, :) = NaN(1, blocks);
         timesCue(trials + 2, :) = mean(timesCue(1:trials, :));
         timesCue(trials + 3, :) = std(timesCue(1:trials, :));
@@ -644,7 +623,7 @@ sca;
 %--------------------
 %filesaving
 filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
-filename = [participant '_timing' '.mat']; %TIMING CODE
+filename = [participant '_timing' '.mat']; %TIMING CODE: remove '_timing'
 
 save(fullfile(filepath, filename), 'timesCue','timesISI', 'timesPostP', 'timesPreP', 'timesPreStim', 'timesPresentation', 'timesStim');
 
