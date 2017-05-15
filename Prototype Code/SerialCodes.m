@@ -4,3 +4,7 @@ config_io; %Needs to be run once in the beggining of the script before outp or i
 outp(address, 3)
 pause(0.005)
 outp(address, 0)
+
+
+%Useful Link
+%http://apps.usd.edu/coglab/psyc770/IO64.html.
