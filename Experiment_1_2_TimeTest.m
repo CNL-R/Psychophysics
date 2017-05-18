@@ -1,5 +1,6 @@
 %Changes in 1_2: Opening Psychport at the beginning of the experiment and
 %keeping it open throughout the whole thing for efficiency. Using PresentMoreEfficientAVStimulus.mat for presentation of cues. 
+%Current: No probability gaussian on gabors. 
 
 % Clear the workspace and the screen
 sca;
@@ -158,7 +159,7 @@ cueTexture= Screen('MakeTexture', window, cueMatrix);
 %Creating stimuli #1
 gaborMatrix = zeros(appY, appX, prealNum);  %matrix containing pixel values for the texture being created. Expands to hold pixel values of all stimuli
 gabor = CreateGabor(stimLength, sigma, lambda, 'r', 'r', A);
-gabor = EmbedInNoise(gabor, initialCoherence, 1, gauss);
+gabor = EmbedInNoise(gabor, initialCoherence, 0, gauss);
 gaborMatrix(:, :, 1) = EmbedInApperature(gabor, 'c', appX, appY, 'n', 0.5);
 gaborMatrix(:, :, 1) = EmbedInAnnulus(gaborMatrix(:, :, 1), annulusWidth, annulusColor);
 
@@ -430,7 +431,7 @@ for block = 1:blocks
         %loop to draw circle with different coherence values for each stimulus type
         %for each stim condition
         gabor = CreateGabor(stimLength, sigma, lambda, 'r', 'r', A);
-        gabor = EmbedInNoise(gabor, coherence, 1, gauss);
+        gabor = EmbedInNoise(gabor, coherence, 0, gauss);
         gaborMatrix(:, :, trial) = EmbedInApperature(gabor, 'c', appX, appY, 'n', 0.5);
         gaborMatrix(:, :, trial) = EmbedInAnnulus(gaborMatrix(:, :, trial), annulusWidth, annulusColor);
         
