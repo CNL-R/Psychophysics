@@ -4,7 +4,7 @@ function [vbl,respMade,rt] = PresentStimulus(stimulusTexture, window, vbl, ifi, 
 %   stimulusTexture - texture of the stimulus that you wish to present Use Screen('MakeTexture') to convert matrix to texture. 
 %   window: window ptr of the window to present the stimuli. [window, windowRect] = PsychImaging('OpenWindow', screenNumber, 0.5, [], 32, 2,...
 %       [], [],  kPsychNeed32BPCFloat);
-%   vbl: if this is the first presentation of the stimulus, it creates one. This function returns vbl for subsequent presentation functions.
+%   vbl: if this is the first presentation of the stimulus, it creates one; use 0 in this case. This function returns vbl for subsequent presentation functions.
 %       ENTER 0 if this is the first presentation!!! vbl is used to keep track of the time a stimulus was played for strict timing of presentations
 %   ifi: Flip Interval. Use ifi = Screen('GetFlipInterval', windowPtr) to get it
 %   Duration: For a stimulus of X ms, enter X for Duration1 and 0 for Duration 2. For a stimulus played for a random amount of time between X and Y, input X as
