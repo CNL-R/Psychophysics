@@ -6,7 +6,7 @@ clearvars;
 % Setup PTB with some default values
 PsychDefaultSetup(2);
 %Setting screen number: secondary monitor if it exists
-screenNumber = 1;%max(Screen('Screens'));
+screenNumber = max(Screen('Screens'));
 % Define black, white and grey
 white = WhiteIndex(screenNumber);
 black = BlackIndex(screenNumber);
@@ -44,9 +44,9 @@ volume = 0.5;
 % CreateWAV(cueFreq, cueTime, sampleFreq, 'auditoryCue.wav');
 % CreateWAV(0, cueTime, sampleFreq, 'nullCue.wav');
 
-%% CREATE AND PRESENT YOUR VISUAL STIMULI
+%% CREATE AND IMSHOW YOUR VISUAL STIMULI
 %SELECT YOUR MAIN PARAMETERS HERE
-coherence = 1;
+coherence = .175;
 annulus = 1; %Insert annulus? 1 for yes. 0 for no. 
 sigma = 50; %standard deviation of gaussian window in pixels
 lambda = 50; %wavelength of sine grating (number of pixels per cycle) 
@@ -93,8 +93,9 @@ gaborMatrix = zeros(appY, appX);  %matrix containing pixel values for the textur
 gabor = CreateGabor(stimLength, sigma, lambda, 'r', 'r', A);
 gabor = EmbedInNoise(gabor, coherence, probabilityGaussian, gauss);
 gaborMatrix = EmbedInApperature(gabor, 'c', appX, appY, 'n', 0.5);
-gaborMatrix = EmbedInAnnulus(gaborMatrix, annulusWidth, annulusColor);
-
+if annulus == 1
+    gaborMatrix = EmbedInAnnulus(gaborMatrix, annulusWidth, annulusColor);
+end
 hold on;
 imshow(gaborMatrix);
 %% PRESENTING THE STIMULUS
