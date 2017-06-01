@@ -24,7 +24,7 @@ PsychDefaultSetup(2);
 
 % Set the screen number to the external secondary monitor if there is one
 % connected
-screenNumber = 1;%max(Screen('Screens'));
+screenNumber = max(Screen('Screens'));
 
 % Define black, white and grey
 white = WhiteIndex(screenNumber);
@@ -59,22 +59,22 @@ Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');
 %number of blocks per condition
 blocksPerCondition = 1;
 
-%number of blocks per condition
-blocks = blocksPerCondition * 3;
+%number of blocks total
+blocks = blocksPerCondition * 3; %3 is number of conditions
 
 %blocks Matrix to give experimental loop info about what type of block to play and keep track of psychometric threshold
 blockMatrix = repmat([1:3; 0 0 0; 0 0 0], 1, blocksPerCondition);
 %blockMatrix(1,:) = condition per each block
-    %1 - Visual
-    %2 - Auditory
-    %3 - Audiovisual
+    %1 - Pure Visual Block
+    %2 - Pure Auditory Block
+    %3 - Pure Audiovisual Block
 %blockMatrix(2,:) = psychThreshold
 %blockMatrix(3,:) = average RT
 blockMatrix(1,1:3) = [1 2 3];
 blockMatrix(1,4:6) = [2 3 1];
 blockMatrix(1,7:9) = [3 1 2];
 
-%number of reversals/runs
+%number of reversals/runs per block
 runs = 8;
  
 %initial step size

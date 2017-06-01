@@ -1,6 +1,6 @@
 %Changes in 1_2: Opening Psychport at the beginning of the experiment and
 %keeping it open throughout the whole thing for efficiency. Using PresentMoreEfficientAVStimulus.mat for presentation of cues. 
-%Current: No probability gaussian on gabors. 
+%No probability gaussian on gabors. 
 
 % Clear the workspace and the screen
 sca;

@@ -62,15 +62,15 @@ Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');
 %number of blocks per condition
 blocksPerCondition = 1;
 
-%number of blocks per condition
+%number of blocks total
 blocks = blocksPerCondition * 3;
 
-%blocks Matrix to give experimental loop info about what type of block to play and keep track of psychometric threshold
+%blocks Matrix to give experimental loop info about what type of block to play and keep track of psychometric threshold for each block
 blockMatrix = repmat([1:3; 0 0 0; 0 0 0; 0 0 0], 1, blocksPerCondition);
 %blockMatrix(1,:) = condition per each block
-    %1 - Visual
-    %2 - Auditory
-    %3 - Audiovisual
+    %1 - Pure Visual Block
+    %2 - Pure Auditory Block
+    %3 - Pure Audiovisual Block
     %blockMatrix(2,:) = psychThreshold
     %blockMatrix(3,:) = average RT
     %blockMatrix(4,:) = average cue RT
@@ -78,7 +78,7 @@ blockMatrix(1,1:3) = [1 2 3];
 blockMatrix(1,4:6) = [2 3 1];
 blockMatrix(1,7:9) = [3 1 2];
 
-%number of reversals/runs
+%number of reversals/runs per block
 runs = 8;
  
 %initial step size
@@ -87,7 +87,7 @@ initialStep = 0.3;
 %initial stimulus coherence value
 initialCoherence = 0.5;
 
-%preallocated number of trials per block
+%preallocated max number of trials per block
 prealNum = 100;
 
 %matrix for storing trial number and coherence value for that stimulus.
@@ -155,7 +155,7 @@ annulusWidth = 10;
 annulusColor = .25;
 annulusBackgroundColor = 0.5;
 
-%Cue Information
+%Cues Information
 cueColor = .75;
 cueFrequency = 1000;
 
