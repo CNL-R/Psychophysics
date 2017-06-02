@@ -1,6 +1,6 @@
-CreateWAV( 1000, 1000, 44100, 'Hello_World.wav');
+CreateWAV( 1000, 1000, 44100, 'Hello_World.WAV');
 
-[y, Fs] = audioread('Hello_World.wav');
+[y, Fs] = audioread('NoisyWAV.WAV');
 y(:, 2) = y(:, 1);
 y = y';
 % Initialize Sounddriver
