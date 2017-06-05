@@ -13,7 +13,7 @@ function [] = CreateNoisyWAV(Frequency, Coherence, Duration, SampleRate, Filenam
     
     for i = 1:lastt
         if rand(1) > Coherence
-            y(i) = randn(1);
+            y(i) = rand(1);
         end
     end 
     audiowrite(Filename, y, SampleRate);
