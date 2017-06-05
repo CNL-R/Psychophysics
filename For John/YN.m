@@ -63,10 +63,8 @@ startCue = 0;
 repetitions = 1;
 waitForDeviceStart = 1;
 
-%Open audio port
-pahandle = PsychPortAudio('Open', [], 1, 1, sampleFreq, nrchannels, [], [], [], []);
 
-%--------------------
+%% --------------------
 % Visual Noise Parameters & Generation
 %--------------------
 length = 700;
@@ -96,28 +94,20 @@ end
 %--------------------
 gaborLength = 300;
 gaborWidth = gaborLength;
-coherence = 1;
+coherence = .1;
 
-sigma = 65;
+sigma = 75;
 lambda = 50;
 A = 1;
 
-gabor = CreateGabor(gaborWidth, sigma, lambda, 'r', 'r', A);
-
-%--------------------
-% Auditory Parameters
-%--------------------
-anDuration = 1000; %duration auditory noise
-asDuration = 100; %duration auditory pure tone stim in noise
-frequency = 1000;
-audCoherence = 1;
+gabor = CreateGabor2(gaborWidth, sigma, lambda, 'r', 'r', A);
 
 blank = Screen('MakeTexture', window, 0);
 %--------------------
 % Visual Gabor Generation & Playback
 %--------------------
 while coherence > 0
-coherence = coherence - .1
+coherence
 %Generating Gabor w/ Animated Noise texture matrix
 stimulusTextures = GenerateAnimatedNoiseGabor(gabor, noise, coherence, vsDuration, ifi, window);
 % refreshRate = 1/ifi;
@@ -149,23 +139,74 @@ vbl = PresentAnimatedNoiseGabor(stimulusTextures, window, vbl, ifi, vsDuration, 
 
 % Playing Back Noise
 vbl = PresentAnimatedNoise(textures, window, vbl, ifi, vnDuration, 0, 0, 0, 0, 0, rectCenter);
+coherence = coherence - .1;
 end
 
 %% --------------------
 % Auditory Generation & Playblack
 %--------------------
+% Auditory Parameters
+anDuration = 1000; %duration auditory noise
+asDuration = 100; %duration auditory pure tone stim in noise
+frequency = 1000;
+audCoherence = .1;
+
+%Open audio port
+pahandle = PsychPortAudio('Open', [], 1, 1, sampleFreq, nrchannels, [], [], [], []);
+
 while audCoherence > 0
     %Generating WAVS
+    audCoherence
     audCoherence = audCoherence - .1
-    CreateAuditoryNoise(anDuration, sampleFreq, 'Noise1.WAV')
-    CreateAuditoryNoise(anDuration, sampleFreq, 'Noise2.WAV')
-    CreateNoisyWAV(frequency, audCoherence, asDuration, sampleFreq, 'NoisyWAV.WAV')
+    CreateAuditoryNoise(anDuration, sampleFreq, 'Noise1.WAV');
+    CreateAuditoryNoise(anDuration, sampleFreq, 'Noise2.WAV');
+    CreateNoisyWAV(frequency, audCoherence, asDuration, sampleFreq, 'NoisyWAV.WAV');
     
     y1 = audioread('Noise1.WAV');
-    y1 = 
+    y1(:, 2) = y1(:, 1);
+    y2 = audioread('Noise2.WAV');
+    y2(:, 2) = y2(:, 1);
+    y3 = audioread('NoisyWAV.WAV');
+    y3(:, 2) = y3(:, 1);
+    
+    y = [y1; y3; y2];
+    y = y';
+    
+    PsychPortAudio('FillBuffer', pahandle, y);
+    PsychPortAudio('Start', pahandle, repetitions, startCue, waitForDeviceStart);
+    pause(2.1);
+    PsychPortAudio('Stop', pahandle, 1, 1);
+    audCoherence = audCoherence - .1;
 end 
 
-
-
-
+%% --------------------
+%Multisensory Playback
+%--------------------
+AVCoherence = 1;
+%AV Noise #1
+while AVCoherence > 0
+    AVCoherence
+    %auditory pregeneration
+    CreateAuditoryNoise(anDuration, sampleFreq, 'Noise1.WAV');
+    CreateAuditoryNoise(anDuration, sampleFreq, 'Noise2.WAV');
+    CreateNoisyWAV(frequency, AVCoherence, asDuration, sampleFreq, 'NoisyWAV.WAV');
+    y1 = audioread('Noise1.WAV');
+    y1(:, 2) = y1(:, 1);
+    y1 = y1';
+    y2 = audioread('Noise2.WAV');
+    y2(:, 2) = y2(:, 1);
+    y2 = y2';
+    y3 = audioread('NoisyWAV.WAV');
+    y3(:, 2) = y3(:, 1);
+    y3 = y3';
+    
+    %visual pregeneration
+    stimulusTextures = GenerateAnimatedNoiseGabor(gabor, noise, AVCoherence, vsDuration, ifi, window);
+    
+    vbl = PresentAVNoise(textures, y1, pahandle, volume, window, 0, ifi, vnDuration, 0, 0, 0, 0, 0, rectCenter);
+    vbl = PresentAnimatedAVNoiseGabor(stimulusTextures, y3, pahandle, volume, window, vbl, ifi, vsDuration, 0, 0, 0, 0, 0, rectCenter);
+    vbl = PresentAVNoise(textures, y2, pahandle, volume, window, 0, ifi, vnDuration, 0, 0, 0, 0, 0, rectCenter);
+    
+    AVCoherence = AVCoherence - .1;
+end
 PsychPortAudio('Close', pahandle);

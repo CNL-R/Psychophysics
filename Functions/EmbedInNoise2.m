@@ -1,5 +1,5 @@
 function gaborMatrix = EmbedInNoise2(GaborMatrix, Coherence, ProbabilityGaussian, GaussianMatrix)
-%EmbedInNoise embeds a gabor matrix in noise. Different from EmbedInNoise in that it does not auto trim into a circle
+%EmbedInNoise2 embeds a gabor matrix in noise. Different from EmbedInNoise in that it does not auto trim into a circle and converts all pixel values with 'n' to noise. 
 %   GaborMatrix - 2D matrix that holds the pixel values of the Gabor that one wants embedded in noise
 %   Coherence - % of the pixels that are not turned into noise
 %   ProbabilityGaussian - 1 or 0 is given. if 1, the noise will be in a probability gaussian. 
@@ -22,7 +22,9 @@ for y = 1:stimLength
                 gaborMatrix(y,x) = rand(1);
             end
         else
-            if rand(1) >= Coherence
+            if gaborMatrix(y,x) == 0;
+                gaborMatrix(y,x) = rand(1);
+            elseif rand(1) >= Coherence
                 gaborMatrix(y,x) = rand(1);
             end
         end

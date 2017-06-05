@@ -7,7 +7,7 @@ function [stimulusTextures] = GenerateAnimatedNoiseGabor(gaborMatrix, noiseMatri
 [x y numNoises] = size(noiseMatrices);
 refreshRate = 1/ifi; %calculating monitor refresh rate
 for frame = 1:round(refreshRate*duration/1000) %number of frames inside duration of presentation desired
-    noised_gabor = EmbedInNoise(gaborMatrix, coherence, 0, 0);
+    noised_gabor = EmbedInNoise2(gaborMatrix, coherence, 0, 0);
     stimulusMatrix = EmbedInEfficientApperature(noised_gabor, noiseMatrices(:, :, round(rand(1) * (numNoises- 1) + 1))); 
     stimulusTextures(frame) = Screen('MakeTexture', window, stimulusMatrix);
 end 

@@ -8,7 +8,7 @@ function [] = CreateAuditoryNoise(Duration, SampleRate, Filename)
     Duration = Duration / 1000;
     
   
-    y = rand(SampleRate * Duration, 1);
+    y = 2*rand(SampleRate * Duration, 1) - 1;
     
     audiowrite(Filename, y, SampleRate);
 end
