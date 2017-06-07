@@ -27,6 +27,7 @@ grey = white / 2;
 
 %Query the time duration
 ifi = Screen('GetFlipInterval', window);
+refreshRate = 1/ifi;
 
 %Set the text font and size
 Screen('TextFont', window, 'Ariel');
@@ -90,6 +91,30 @@ for i = 1:numTextures
 end 
 
 %--------------------
+% Cue Production
+%--------------------
+visualCueDuration = 500; %in ms
+visualCueDiameter = 50;
+visualCue = zeros(visualCueDiameter);
+cueRect = [0 0 length width];
+cueRectCenter = CenterRectOnPointd(cueRect, xPos, yPos);
+
+for frame = 1:round(refreshRate * visualCueDuration/1000)
+    for y = 1:visualCueDiameter
+        for x = 1:visualCueDiameter
+            if (x-visualCueDiameter/2)^2 + (y-visualCueDiameter/2)^2 <= (visualCueDiameter/2)^2
+                visualCue(y,x) = 1;
+            else 
+                visualCue(y,x) = rand(1);
+            end
+            
+        end
+    end
+    visualCue = EmbedInEfficientApperature(visualCue, noise(:, :, round(rand(1) * (numTextures- 1) + 1))); 
+    cueTextures(frame) = Screen('MakeTexture', window, visualCue);
+end
+
+%--------------------
 % Visual Gabor Paremeters
 %--------------------
 gaborLength = 300;
@@ -103,6 +128,7 @@ A = 1;
 gabor = CreateGabor2(gaborWidth, sigma, lambda, 'r', 'r', A);
 
 blank = Screen('MakeTexture', window, 0);
+
 %--------------------
 % Visual Gabor Generation & Playback
 %--------------------
@@ -127,15 +153,17 @@ vbl = PresentAnimatedNoise(textures, window, 0, ifi, vnDuration, 0, 0, 0, 0, 0, 
 %     vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
 %     
  %end
-
-% Playing Back Gabors
-vbl = PresentAnimatedNoiseGabor(stimulusTextures, window, vbl, ifi, vsDuration, 0, 0, 0, 0, 0, rectCenter);
+vbl = PresentAnimatedNoiseGabor(cueTextures, window, vbl, ifi, visualCueDuration, 0, 0, 0, 0, 0, cueRectCenter);
+% Playing Back Gabor
+vbl = PresentAnimatedNoiseGabor(gabor, window, vbl, ifi, vsDuration, 0, 0, 0, 0, 0, rectCenter);
 % Screen('DrawTextures', window, stimulusTextures(1) ,[], rectCenter, [], [], [], []);
 % vbl = Screen('Flip', window);
 % for frame = 1:timeFrames - 1
 %     Screen('DrawTextures', window, stimulusTextures(frame + 1), [], rectCenter, [], [], [], []);
 %     vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
 % end
+
+
 
 % Playing Back Noise
 vbl = PresentAnimatedNoise(textures, window, vbl, ifi, vnDuration, 0, 0, 0, 0, 0, rectCenter);

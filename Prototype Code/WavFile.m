@@ -1,4 +1,4 @@
-CreateWAV( 1000, 1000, 44100, 'Hello_World.WAV');
+%CreateWAV( 1000, 1000, 44100, 'Hello_World.WAV');
 
 [y, Fs] = audioread('NoisyWAV.WAV');
 y(:, 2) = y(:, 1);

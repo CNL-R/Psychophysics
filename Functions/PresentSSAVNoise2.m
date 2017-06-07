@@ -1,8 +1,9 @@
-function [vbl,respMade,rt] = PresentAnimatedAVNoiseGabor(stimulusTextures, AudioMat, pahandle, window, vbl, ifi, Duration1, Duration2, GetResp, tStart, PreviousRespMade, rt, rectCenter)
-%Plays a visual stimulus for the given Duration in ms. Will generate a vbl if no vbl is given. Has ability to receive user input in form of key press or rt. Works by
+function [vbl,respMade,rt] = PresentSSAVNoise2(textures, AudioMat, crossTexture, pahandle, volume, window, vbl, ifi, Duration1, Duration2, tStart, PreviousRespMade, rt, dstRects)
+%Plays multisensory noise. Will generate a vbl if no vbl is given. Has ability to receive user input in form of key press or rt. Works by
 %choosing a random image from a pool of noise images to be presented for each frame. Must first give this function a pool of textures in a one dimensional matrix. 
 %   
-%   stimulusTextures - matrix of all textures being played. Can be generated from GenerateAnimatedNoiseGabor
+%   textures - matrix of pool of textures of noise images
+%   AudioMat - takes matrix generated from audioread rather than a WAVFile
 %   window: window ptr of the window to present the stimuli. [window, windowRect] = PsychImaging('OpenWindow', screenNumber, 0.5, [], 32, 2,...
 %       [], [],  kPsychNeed32BPCFloat);
 %   vbl: if this is the first presentation of the stimulus, it creates one; use 0 in this case. This function returns vbl for subsequent presentation functions.
@@ -22,6 +23,14 @@ function [vbl,respMade,rt] = PresentAnimatedAVNoiseGabor(stimulusTextures, Audio
 %made. If there is no response, respMade is NOT set to false. This is to accomodate
 %for a series of presentations that wish to get user response. Initialize
 %respMade as false before calling any presentX stimulus. 
+
+%audiosetup stuff
+repetitions = 1;
+startCue = 0;
+waitForDeviceStart = 1;
+sampleFreq = 48000;
+nrchannels = 2;
+numTextures = numel(textures);
 
 %setting respMade to previous response and setting default rt to 0
 respMade = PreviousRespMade;
@@ -48,44 +57,44 @@ if vbl == 0
     PsychPortAudio('Start', pahandle, repetitions, startCue, waitForDeviceStart);
     
     %Play stimulus
-    Screen('DrawTextures', window, stimulusTextures(1), [], rectCenter, [], [], [], []);
+    Screen('DrawTextures', window, [textures(round(rand(1) * (numTextures - 1) + 1)) textures(round(rand(1) * (numTextures - 1) + 1)) crossTexture], [], dstRects, [], [], [], []);
     vbl = Screen('Flip', window);
     
     %Play stimulus for the rest of the presentation interval (-1
     %frame because we played the fixation point at frame 1)
-    for frame = 1:timeFrames - 1
+    while respMade == false
         %Draw fixation point
-        Screen('DrawTextures', window, stimulusTextures(frame + 1), [], rectCenter, [], [], [], []);
+        Screen('DrawTextures', window, [textures(round(rand(1) * (numTextures - 1) + 1)) textures(round(rand(1) * (numTextures - 1) + 1)) crossTexture], [], dstRects, [], [], [], []);
         
         %Flip to screen
         vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
         
-        if GetResp == true
-            %detecting response
-            KeyIsDown = KbCheck;
-            if KeyIsDown == 1
-                respMade = true;
-                tEnd = GetSecs;
-                rt = tEnd - tStart;
-            end
+        
+        %detecting response
+        KeyIsDown = KbCheck;
+        if KeyIsDown == 1
+            respMade = true;
+            tEnd = GetSecs;
+            rt = tEnd - tStart;
         end
+        
     end
     %otherwise, use previous vbl
 else
     %play sound
     PsychPortAudio('Start', pahandle, repetitions, startCue, waitForDeviceStart);
-    for frame = 1:timeFrames
-        Screen('DrawTextures', window, stimulusTextures(frame), [], rectCenter, [], [], [], []);
+    while respMade == false
+        Screen('DrawTextures', window, [textures(round(rand(1) * (numTextures - 1) + 1)) textures(round(rand(1) * (numTextures - 1) + 1)) crossTexture], [], dstRects, [], [], [], []);
         vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
-        if GetResp == true
-            %detecting response
-            KeyIsDown = KbCheck;
-            if KeyIsDown == 1
-                respMade = true;
-                tEnd = GetSecs;
-                rt = tEnd - tStart;
-            end
+        
+        %detecting response
+        KeyIsDown = KbCheck;
+        if KeyIsDown == 1
+            respMade = true;
+            tEnd = GetSecs;
+            rt = tEnd - tStart;
         end
+        
     end
 end
 PsychPortAudio('Stop', pahandle);

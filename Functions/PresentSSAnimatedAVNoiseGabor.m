@@ -1,4 +1,4 @@
-function [vbl,respMade,rt] = PresentAnimatedNoiseGabor(stimulusTextures, window, vbl, ifi, Duration1, Duration2, GetResp, tStart, PreviousRespMade, rt, rectCenter)
+function [vbl,respMade,rt] = PresentSSAnimatedAVNoiseGabor(stimulusTextures, AudioMat, noiseTextures, crossTexture, pahandle, volume, window, vbl, ifi, Duration1, Duration2, GetResp, tStart, PreviousRespMade, rt, dstRectsShuffled)
 %Plays a visual stimulus for the given Duration in ms. Will generate a vbl if no vbl is given. Has ability to receive user input in form of key press or rt. Works by
 %choosing a random image from a pool of noise images to be presented for each frame. Must first give this function a pool of textures in a one dimensional matrix. 
 %   
@@ -23,12 +23,16 @@ function [vbl,respMade,rt] = PresentAnimatedNoiseGabor(stimulusTextures, window,
 %for a series of presentations that wish to get user response. Initialize
 %respMade as false before calling any presentX stimulus. 
 
+numTextures = numel(noiseTextures);
+
 %setting respMade to previous response and setting default rt to 0
 respMade = PreviousRespMade;
 
 %setting number of frames to wait before redrawing
 waitframes = 1;
-
+repetitions = 1; 
+startCue = 0;
+waitForDeviceStart = 1;
 %setting Time in Frames
 if Duration2 > Duration1
     timeMSecs = (rand(1)*(Duration2 - Duration1) + Duration1)/1000;
@@ -38,18 +42,24 @@ else
     timeFrames = round(timeMSecs ./ ifi);
 end
 
+PsychPortAudio('Volume', pahandle, volume);
+PsychPortAudio('FillBuffer', pahandle, AudioMat);
 
 %if this is the first instance of putting something on the monitor
 if vbl == 0
+    
+    %play sound
+    PsychPortAudio('Start', pahandle, repetitions, startCue, waitForDeviceStart);
+    
     %Play stimulus
-    Screen('DrawTexture', window, stimulusTextures(1), [], rectCenter, [], [], [], []);
+    Screen('DrawTextures', window, [stimulusTextures(1) noiseTextures(round(rand(1) * (numTextures - 1) + 1)) crossTexture],[], dstRectsShuffled, [0 0 0], [], [], []);
     vbl = Screen('Flip', window);
     
     %Play stimulus for the rest of the presentation interval (-1
     %frame because we played the fixation point at frame 1)
     for frame = 1:timeFrames - 1
         %Draw fixation point
-        Screen('DrawTexture', window, stimulusTextures(frame + 1), [], rectCenter, [], [], [], []);
+        Screen('DrawTextures', window, [stimulusTextures(frame + 1) noiseTextures(round(rand(1) * (numTextures - 1) + 1)) crossTexture],[], dstRectsShuffled, [0 0 0], [], [], []);
         
         %Flip to screen
         vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
@@ -66,8 +76,10 @@ if vbl == 0
     end
     %otherwise, use previous vbl
 else
+    %play sound
+    PsychPortAudio('Start', pahandle, repetitions, startCue, waitForDeviceStart);
     for frame = 1:timeFrames
-        Screen('DrawTexture', window, stimulusTextures(frame), [], rectCenter, [], [], [], []);
+        Screen('DrawTextures', window, [stimulusTextures(frame) noiseTextures(round(rand(1)*(numTextures - 1) + 1)) crossTexture],[], dstRectsShuffled, [0 0 0], [], [], []);
         vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
         if GetResp == true
             %detecting response
@@ -80,6 +92,7 @@ else
         end
     end
 end
+PsychPortAudio('Stop', pahandle);
 end
 
 

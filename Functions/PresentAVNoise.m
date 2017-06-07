@@ -57,14 +57,14 @@ if vbl == 0
     PsychPortAudio('Start', pahandle, repetitions, startCue, waitForDeviceStart);
     
     %Play stimulus
-    Screen('DrawTextures', window, textures(round(rand(1) * (numTextures - 1) + 1)), [], rectCenter, [], [], [], []);
+    Screen('DrawTexture', window, textures(round(rand(1) * (numTextures - 1) + 1)) , [], rectCenter, [], [], [], []);
     vbl = Screen('Flip', window);
     
     %Play stimulus for the rest of the presentation interval (-1
     %frame because we played the fixation point at frame 1)
     for frame = 1:timeFrames - 1
         %Draw fixation point
-        Screen('DrawTextures', window, textures(round(rand(1) * (numTextures - 1) + 1)), [], rectCenter, [], [], [], []);
+         Screen('DrawTexture', window, textures(round(rand(1) * (numTextures - 1) + 1)) , [], rectCenter, [], [], [], []);
         
         %Flip to screen
         vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
@@ -84,7 +84,7 @@ else
     %play sound
     PsychPortAudio('Start', pahandle, repetitions, startCue, waitForDeviceStart);
     for frame = 1:timeFrames
-        Screen('DrawTextures', window, textures(round(rand(1) * (numTextures - 1) + 1)), [], rectCenter, [], [], [], []);
+        Screen('DrawTexture', window, textures(round(rand(1) * (numTextures - 1) + 1)) , [], rectCenter, [], [], [], []);
         vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
         if GetResp == true
             %detecting response

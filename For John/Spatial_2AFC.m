@@ -76,11 +76,36 @@ waitframes = 1;
 timeSecs = vsDuration/1000;
 timeFrames = round(timeSecs ./ ifi);
 
-%Centering texture in center of window
+%Making the fixation cross
+crossLength = 50;
+crossWidth = 3;
+crossCenter = crossLength/2;
+
+cross = zeros(crossLength);
+cross(:,:) = 0.5;
+cross(crossCenter-crossWidth:crossCenter+crossWidth, 1:crossLength) = 1;
+cross( 1:crossLength, crossCenter-crossWidth:crossCenter+crossWidth) = 1;
+
+crossTexture = Screen('MakeTexture', window, cross);
+
+%Creating destination rects
+baseRect = [0 0 length width];
+baseRectCross = [0 0 crossLength crossLength];
+
 xPos = xCenter;
 yPos = yCenter;
-baseRect = [0 0 length width];
-rectCenter = CenterRectOnPointd(baseRect, xPos, yPos);
+rectCenter = CenterRectOnPointd(baseRectCross, xPos, yPos);
+
+xPosL = xCenter - xCenter/2;
+yPosL = yCenter;
+rectLeft = CenterRectOnPointd(baseRect, xPosL, yPosL);
+
+xPosR = xCenter + xCenter/2;
+yPosR = yCenter;
+rectRight = CenterRectOnPointd(baseRect, xPosR, yPosR);
+
+stimDstRects = [rectLeft' rectRight'];
+dstRects = [stimDstRects rectCenter'];
 
 %Generating Noise Textures
 numTextures = 100;
@@ -94,20 +119,25 @@ end
 %--------------------
 gaborLength = 300;
 gaborWidth = gaborLength;
-coherence = .1;
+coherence = 0;
 
-sigma = 50;
+sigma = 75;
 lambda = 50;
 A = 1;
 
 gabor = CreateGabor2(gaborWidth, sigma, lambda, 'r', 'r', A);
 
 blank = Screen('MakeTexture', window, 0);
+
+
 %--------------------
 % Visual Gabor Generation & Playback
 %--------------------
 while coherence > 0
 coherence
+shuffler = randperm(2);
+dstRectsShuffled = stimDstRects(:,shuffler);
+dstRectsShuffled = [dstRectsShuffled rectCenter'];
 %Generating Gabor w/ Animated Noise texture matrix
 stimulusTextures = GenerateAnimatedNoiseGabor(gabor, noise, coherence, vsDuration, ifi, window);
 % refreshRate = 1/ifi;
@@ -118,27 +148,36 @@ stimulusTextures = GenerateAnimatedNoiseGabor(gabor, noise, coherence, vsDuratio
 % end
 
 % Playing Back Noise
-vbl = PresentAnimatedNoise(textures, window, 0, ifi, vnDuration, 0, 0, 0, 0, 0, rectCenter);
-% Screen('DrawTextures', window, textures(round(rand(1) * (numTextures - 1) + 1)), [], rectCenter, [], [], [], []);
+vbl = PresentSSAnimatedNoise(textures, crossTexture, window, 0, ifi, vnDuration, 0, 0, 0, 0, 0, dstRects);
+% Screen('DrawTextures', dstRects, window, [textures(round(rand(1) * (numTextures - 1) + 1)) textures(round(rand(1) * (numTextures - 1) + 1))], [], dstRects, [0 0], [], [], []);
 % vbl = Screen('Flip', window);
 % for frame = 1:timeFrames - 1
 %     
-%     Screen('DrawTextures', window, textures(round(rand(1) * (numTextures - 1) + 1)), [], rectCenter, [], [], [], []);
+%     Screen('DrawTextures', window, [textures(round(rand(1) * (numTextures - 1) + 1)) textures(round(rand(1) * (numTextures - 1) + 1))], [], dstRects, [0 0], [], [], []);
 %     vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
 %     
- %end
+%  end
 
 % Playing Back Gabors
-vbl = PresentAnimatedNoiseGabor(stimulusTextures, window, vbl, ifi, vsDuration, 0, 0, 0, 0, 0, rectCenter);
-% Screen('DrawTextures', window, stimulusTextures(1) ,[], rectCenter, [], [], [], []);
+vbl = PresentSSAnimatedNoiseGabor(stimulusTextures, textures, crossTexture, window, vbl, ifi, vsDuration, 0, 0, 0, 0, 0, dstRectsShuffled);
+% Screen('DrawTextures', window, [stimulusTextures(1) textures(round(rand(1) * (numTextures - 1) + 1))],[], dstRectsShuffled, [0 0], [], [], []);
 % vbl = Screen('Flip', window);
 % for frame = 1:timeFrames - 1
-%     Screen('DrawTextures', window, stimulusTextures(frame + 1), [], rectCenter, [], [], [], []);
+%     Screen('DrawTextures', window, [stimulusTextures(1) textures(round(rand(1) * (numTextures - 1) + 1))],[], dstRectsShuffled, [0 0], [], [], []);
 %     vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
 % end
 
+
 % Playing Back Noise
-vbl = PresentAnimatedNoise(textures, window, vbl, ifi, vnDuration, 0, 0, 0, 0, 0, rectCenter);
+vbl = PresentSSAnimatedNoise2(textures, crossTexture, window, vbl, ifi, vnDuration, 0, 0, 0, 0, dstRects);
+% Screen('DrawTextures', window, [textures(round(rand(1)*numTextures - 1) + 1)) , textures(round(rand(1) * (numTextures - 1) + 1))], [], dstRects, [0 0], [], [], []);
+% vbl = Screen('Flip', window);
+% for frame = 1:timeFrames - 1
+%     
+%     Screen('DrawTextures', window, [textures(round(rand(1) * (numTextures - 1) + 1)) textures(round(rand(1) * (numTextures - 1) + 1))], [], dstRects, [0 0], [], [], []);
+%     vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
+%     
+%  end
 coherence = coherence - .1;
 end
 
@@ -149,7 +188,7 @@ end
 anDuration = 1000; %duration auditory noise
 asDuration = 100; %duration auditory pure tone stim in noise
 frequency = 1000;
-audCoherence = .1;
+audCoherence = 0;
 
 %Open audio port
 pahandle = PsychPortAudio('Open', [], 1, 1, sampleFreq, nrchannels, [], [], [], []);
@@ -186,9 +225,14 @@ AVCoherence = 1;
 %AV Noise #1
 while AVCoherence > 0
     AVCoherence
+    
+    shuffler = randperm(2);
+    dstRectsShuffled = stimDstRects(:,shuffler);
+    dstRectsShuffled = [dstRectsShuffled rectCenter'];
+    
     %auditory pregeneration
     CreateAuditoryNoise(anDuration, sampleFreq, 'Noise1.WAV');
-    CreateAuditoryNoise(anDuration, sampleFreq, 'Noise2.WAV');
+    CreateAuditoryNoise(10000, sampleFreq, 'Noise2.WAV');
     CreateNoisyWAV(frequency, AVCoherence, asDuration, sampleFreq, 'NoisyWAV.WAV');
     y1 = audioread('Noise1.WAV');
     y1(:, 2) = y1(:, 1);
@@ -203,9 +247,9 @@ while AVCoherence > 0
     %visual pregeneration
     stimulusTextures = GenerateAnimatedNoiseGabor(gabor, noise, AVCoherence, vsDuration, ifi, window);
     
-    vbl = PresentAVNoise(textures, y1, pahandle, volume, window, 0, ifi, vnDuration, 0, 0, 0, 0, 0, rectCenter);
-    vbl = PresentAnimatedAVNoiseGabor(stimulusTextures, y3, pahandle, volume, window, vbl, ifi, vsDuration, 0, 0, 0, 0, 0, rectCenter);
-    vbl = PresentAVNoise(textures, y2, pahandle, volume, window, 0, ifi, vnDuration, 0, 0, 0, 0, 0, rectCenter);
+    vbl = PresentSSAVNoise(textures, y1, crossTexture, pahandle, volume, window, 0, ifi, vnDuration, 0, 0, 0, 0, 0, dstRects);
+    vbl = PresentSSAnimatedAVNoiseGabor(stimulusTextures, y3, textures, crossTexture, pahandle, volume, window, vbl, ifi, vsDuration, 0, 0, 0, 0, 0, dstRectsShuffled);
+    vbl = PresentSSAVNoise2(textures, y2, crossTexture, pahandle, volume, window, 0, ifi, vnDuration, 0, 0, 0, 0, dstRects);
     
     AVCoherence = AVCoherence - .1;
 end
