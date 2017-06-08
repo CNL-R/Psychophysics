@@ -1,6 +1,6 @@
 %This script generates moving noise
 %   creates several frames of noise and plays by picking a random one 
-%Screen('Preference', 'SkipSyncTests', 1) %REMOVE THIS LATER!!!!
+Screen('Preference', 'SkipSyncTests', 1) %REMOVE THIS LATER!!!!
 %--------------------
 % INITIAL SET-UP
 %--------------------
@@ -8,19 +8,6 @@
 sca;
 close all;
 clearvars;
-
-%BLOCK PARAMETERS
-VCoherence = -1;
-VFloor = 0;
-VStep = .1;
-
-ACoherence = -1;
-AFloor = 0;
-AStep = .1;
-
-AVCoherence = .1;
-AVFloor = 0;
-AVStep = .1;
 
 % Setup PTB with some default values
 PsychDefaultSetup(2);
@@ -137,6 +124,7 @@ end
 %--------------------
 gaborLength = 300;
 gaborWidth = gaborLength;
+coherence = 0;
 
 sigma = 50;
 lambda = 50;
@@ -150,46 +138,72 @@ order = [1 2];
 %--------------------
 % Visual Gabor Generation & Playback
 %--------------------
-while VCoherence >= VFloor
-VCoherence
+while coherence > 0
+coherence
 shuffler = randperm(2);
 orderShuffled = order(shuffler)
+%Generating Gabor w/ Animated Noise texture matrix
+stimulusTextures = GenerateAnimatedNoiseGabor(gabor, noise, coherence, stimDuration, ifi, window);
+% refreshRate = 1/ifi;
+% for frame = 1:round(refreshRate*stimDuration/1000)
+%     noised_gabor = EmbedInNoise(gabor, coherence, 0, 0);
+%     stim = EmbedInEfficientApperature(noised_gabor, noise(:,:, round(rand(1) * (numTextures - 1) + 1)));
+%     stimTexture(frame) = Screen('MakeTexture', window, stim);    
+% end
 
-AnimationTextures = [];
-%PreCI
-AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
-%Cue
-AnimationTextures = AnimateTextureMatrix(AnimationTextures, cueTextures, cueDuration, ifi);
-%PostCI
-AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, postCIDuration, ifi);
-%Target
+% Playing preCI
+vbl = PresentAnimatedNoise(textures, window, 0, ifi, preCIDuration, 0, 0, 0, 0, 0, rectCenter);
+% Screen('DrawTextures', window, textures(round(rand(1) * (numTextures - 1) + 1)), [], rectCenter, [], [], [], []);
+% vbl = Screen('Flip', window);
+% for frame = 1:timeFrames - 1
+%     
+%     Screen('DrawTextures', window, textures(round(rand(1) * (numTextures - 1) + 1)), [], rectCenter, [], [], [], []);
+%     vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
+%     
+ %end
+ 
+ %Playing Back Cue
+vbl = PresentAnimatedNoiseGabor(cueTextures, window, vbl, ifi, cueDuration, 0, 0, 0, 0, 0, cueRectCenter);
+
+% Playing postCI
+vbl = PresentAnimatedNoise(textures, window, vbl, ifi, postCIDuration(1), postCIDuration(2), 0, 0, 0, 0, rectCenter);
+
+% Playing Back Gabor or Noise
 if orderShuffled(1) == 1
-    AnimationTextures = AnimateNoisyGabor(AnimationTextures, gabor, noise, VCoherence, stimDuration, ifi, window);
+    vbl = PresentAnimatedNoiseGabor(stimulusTextures, window, vbl, ifi, stimDuration, 0, 0, 0, 0, 0, rectCenter);
 elseif orderShuffled(1) == 2
-    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, stimDuration, ifi);
+    vbl = PresentAnimatedNoise(textures, window, 0, ifi, stimDuration, 0, 0, 0, 0, 0, rectCenter);
 end 
-%PreCI
-AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
-%Cue
-AnimationTextures = AnimateTextureMatrix(AnimationTextures, cueTextures, cueDuration, ifi);
-%PostCI
-AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, postCIDuration, ifi);
-%Target
-if orderShuffled(2) == 1
-    AnimationTextures = AnimateNoisyGabor(AnimationTextures, gabor, noise, VCoherence, stimDuration, ifi, window);
-elseif orderShuffled(2) == 2
-    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, stimDuration, ifi);
-end 
-%PreCI
-AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
+% Screen('DrawTextures', window, stimulusTextures(1) ,[], rectCenter, [], [], [], []);
+% vbl = Screen('Flip', window);
+% for frame = 1:timeFrames - 1
+%     Screen('DrawTextures', window, stimulusTextures(frame + 1), [], rectCenter, [], [], [], []);
+%     vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
+% end
 
-%Playing Back Animatoin
-vbl = PlayVisualAnimation(AnimationTextures, window, 0, ifi, 0, 0, 0, 0, rectCenter);
+% Playing preCI
+vbl = PresentAnimatedNoise(textures, window, vbl, ifi, preCIDuration, 0, 0, 0, 0, 0, rectCenter);
+
+%Playing Cue
+vbl = PresentAnimatedNoiseGabor(cueTextures, window, vbl, ifi, cueDuration, 0, 0, 0, 0, 0, cueRectCenter);
+
+% Playing postCI
+vbl = PresentAnimatedNoise(textures, window, vbl, ifi, postCIDuration(1), postCIDuration(2), 0, 0, 0, 0, rectCenter);
+
+%Playing target interval
+if orderShuffled(2) == 1
+    vbl = PresentAnimatedNoiseGabor(stimulusTextures, window, vbl, ifi, stimDuration, 0, 0, 0, 0, 0, rectCenter);
+elseif orderShuffled(2) == 2
+    vbl = PresentAnimatedNoise(textures, window, 0, ifi, stimDuration, 0, 0, 0, 0, 0, rectCenter);
+end 
+
+% Playing preCI
+vbl = PresentAnimatedNoise(textures, window, vbl, ifi, preCIDuration, 0, 0, 0, 0, 0, rectCenter);
 
 % Playing Back Noise Response Period
 vbl = PresentDiscriminationPeriod('Did the stimulus appear in the first interval or second interval?\n Press the left arrow key for the first and right arrow key for the second', window, vbl, ifi, isiDuration, 0, 0, 0, 0, rectCenter);
 
-VCoherence = VCoherence - VStep;
+coherence = coherence - .1;
 end
 
 %% --------------------
@@ -198,25 +212,26 @@ end
 % Auditory Parameters
 frequency = 1000;
 cueFrequency = 500;
+audCoherence = 1;
 
 %Open audio port
 pahandle = PsychPortAudio('Open', [], 1, 1, sampleFreq, nrchannels, [], [], [], []);
 
 order = [1 2];
-while ACoherence >= AFloor
+while audCoherence > 0
     Screen('FillRect', window, 0.5);
     Screen('Flip', window);
     
     %Generating WAVS
-    ACoherence
+    audCoherence
     shuffler = randperm(2);
     orderShuffled = order(shuffler);
     
-    ACoherence = ACoherence - .1
+    audCoherence = audCoherence - .1
     CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI1.WAV');
     CreateNoisyWAV(cueFrequency, .9, cueDuration, sampleFreq, 'Cue.WAV');
     CreateAuditoryNoise(postCIDuration, sampleFreq, 'PostCI.WAV');
-    CreateNoisyWAV(frequency, ACoherence, stimDuration, sampleFreq, 'TargetTone.WAV');
+    CreateNoisyWAV(frequency, audCoherence, stimDuration, sampleFreq, 'TargetTone.WAV');
     CreateAuditoryNoise(stimDuration, sampleFreq, 'TargetNoise.WAV');
     CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI2.WAV');
     CreateAuditoryNoise(postCIDuration, sampleFreq, 'PostCI2.WAV');
@@ -262,15 +277,15 @@ while ACoherence >= AFloor
     % Playing Back Noise Response Period
     PresentDiscriminationPeriod('Did the stimulus appear in the first interval or second interval?\n Press the left arrow key for the first and right arrow key for the second', window, 0, ifi, isiDuration, 0, 0, 0, 0, rectCenter);
     
-    ACoherence = ACoherence - AStep;
+    audCoherence = audCoherence - .1;
 end 
 
 %% --------------------
 %Multisensory Playback
 %--------------------
+AVCoherence = 1;
 %AV Noise #1
-while AVCoherence >= AVFloor
-    trialPostCIDuration = rand(1) * (postCIDuration(2) - postCIDuration(1)) + postCIDuration(1);
+while AVCoherence > 0
     AVCoherence
     
     shuffler = randperm(2);
@@ -279,11 +294,11 @@ while AVCoherence >= AVFloor
     
     CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI1.WAV');
     CreateNoisyWAV(cueFrequency, .9, cueDuration, sampleFreq, 'Cue.WAV');
-    CreateAuditoryNoise(trialPostCIDuration, sampleFreq, 'PostCI.WAV');
-    CreateNoisyWAV(frequency, AVCoherence, stimDuration, sampleFreq, 'TargetTone.WAV');
+    CreateAuditoryNoise(postCIDuration, sampleFreq, 'PostCI.WAV');
+    CreateNoisyWAV(frequency, audCoherence, stimDuration, sampleFreq, 'TargetTone.WAV');
     CreateAuditoryNoise(stimDuration, sampleFreq, 'TargetNoise.WAV');
     CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI2.WAV');
-    CreateAuditoryNoise(trialPostCIDuration, sampleFreq, 'PostCI2.WAV');
+    CreateAuditoryNoise(postCIDuration, sampleFreq, 'PostCI2.WAV');
     CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI3.WAV');
     
     y1 = audioread('PreCI1.WAV');
@@ -315,46 +330,18 @@ while AVCoherence >= AVFloor
     y9 = audioread('PreCI3.WAV');
     y9(:, 2) = y9(:, 1);
     
-    y = [y1; y2; y3; y4; y5; y6; y7; y8; y9];
-    y = y';
-    
     %visual pregeneration
-    AnimationTextures = [];
-    %PreCI
-    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
-    %Cue
-    AnimationTextures = AnimateTextureMatrix(AnimationTextures, cueTextures, cueDuration, ifi);
-    %PostCI
-    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, trialPostCIDuration, ifi);
-    %Target
+    stimulusTextures = GenerateAnimatedNoiseGabor(gabor, noise, AVCoherence, stimDuration, ifi, window);
+    
+    %Present PreCI
+    vbl = PresentAVNoise(textures, y1, pahandle, volume, window, 0, ifi, PreDuration, 0, 0, 0, 0, 0, rectCenter);
+    vbl = PresentAnimatedAVNoiseGabor(cueTextures, y2, pahandle, volume, window, vbl, ifi, cuemDuration, 0, 0, 0, 0, 0, rectCenter);
+    vbl = PresentAVNoise(textures, y3, pahandle, volume, window, vbl, ifi, postCIDuration(1), postCIDuration(2), 0, 0, 0, 0, rectCenter);
     if orderShuffled(1) == 1
-        AnimationTextures = AnimateNoisyGabor(AnimationTextures, gabor, noise, AVCoherence, stimDuration, ifi, window);
+        vbl = PresentAnimatedAVNoiseGabor(stimulusTextures, y4, pahandle, volume, window, vbl, ifi, stimDuration, 0, 0, 0, 0, 0, rectCenter);
     elseif orderShuffled(1) == 2
-        AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, stimDuration, ifi);
+        vbl = PresentAnimatedAVNoiseGabor(textures, y4, pahandle, volume, window, vbl, ifi, stimDuration, 0, 0, 0, 0, 0, rectCenter);
     end
-    %PreCI
-    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
-    %Cue
-    AnimationTextures = AnimateTextureMatrix(AnimationTextures, cueTextures, cueDuration, ifi);
-    %PostCI
-    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, trialPostCIDuration, ifi);
-    %Target
-    if orderShuffled(2) == 1
-        AnimationTextures = AnimateNoisyGabor(AnimationTextures, gabor, noise, AVCoherence, stimDuration, ifi, window);
-    elseif orderShuffled(2) == 2
-        AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, stimDuration, ifi);
-    end
-    %PreCI
-    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
-    
-    %Play Back AV Animation
-    vbl = PlayAVAnimation(AnimationTextures, y, pahandle, volume, window, 0, ifi, 0, 0, 0, 0, rectCenter);
-    
-    % Playing Back Noise Response Period
-    PresentDiscriminationPeriod('Did the stimulus appear in the first interval or second interval?\n Press the left arrow key for the first and right arrow key for the second', window, 0, ifi, isiDuration, 0, 0, 0, 0, rectCenter);
-    AVCoherence = AVCoherence - AVStep;
+    AVCoherence = AVCoherence - .1;
 end
 PsychPortAudio('Close', pahandle);
-
-KbStrokeWait;
-sca;

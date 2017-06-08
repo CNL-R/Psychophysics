@@ -1,6 +1,6 @@
 %This script generates moving noise
 %   creates several frames of noise and plays by picking a random one 
-%Screen('Preference', 'SkipSyncTests', 1) %REMOVE THIS LATER!!!!
+Screen('Preference', 'SkipSyncTests', 1) %REMOVE THIS LATER!!!!
 %--------------------
 % INITIAL SET-UP
 %--------------------
@@ -14,13 +14,13 @@ VCoherence = -1;
 VFloor = 0;
 VStep = .1;
 
-ACoherence = -1;
+ACoherence = 0;
 AFloor = 0;
 AStep = .1;
 
-AVCoherence = .1;
+AVCoherence = 1;
 AVFloor = 0;
-AVStep = .01;
+AVStep = .1;
 
 % Setup PTB with some default values
 PsychDefaultSetup(2);
@@ -83,7 +83,7 @@ waitForDeviceStart = 1;
 length = 500;
 width = 500;
 vnDuration = 1000; %duration pure noise in ms
-vsDuration = 60; %duration stimulus in ms
+vsDuration = 100; %duration stimulus in ms
 waitframes = 1;
 
 timeSecs = vsDuration/1000;
@@ -211,6 +211,3 @@ while AVCoherence >= AVFloor
     AVCoherence = AVCoherence - AVStep;
 end
 PsychPortAudio('Close', pahandle);
-
-KbStrokeWait;
-sca;
