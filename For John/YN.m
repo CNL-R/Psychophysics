@@ -136,7 +136,7 @@ AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, vnDuration, 
 %Playing Back Animation
 vbl = PlayVisualAnimation(AnimationTextures, window, 0, ifi, 0, 0, 0, 0, rectCenter);
 
-VCoherence = round(VCoherence - VStep);
+VCoherence = round(VCoherence - VStep, 5);
 end
 
 %% --------------------
