@@ -10,15 +10,15 @@ close all;
 clearvars;
 
 %BLOCK PARAMETERS
-VCoherence = -1;
+VCoherence = 1;
 VFloor = 0;
 VStep = .1;
 
-ACoherence = -1;
+ACoherence = 1;
 AFloor = 0;
 AStep = .1;
 
-AVCoherence = .1;
+AVCoherence = 1;
 AVFloor = 0;
 AVStep = .1;
 
@@ -189,7 +189,7 @@ vbl = PlayVisualAnimation(AnimationTextures, window, 0, ifi, 0, 0, 0, 0, rectCen
 % Playing Back Noise Response Period
 vbl = PresentDiscriminationPeriod('Did the stimulus appear in the first interval or second interval?\n Press the left arrow key for the first and right arrow key for the second', window, vbl, ifi, isiDuration, 0, 0, 0, 0, rectCenter);
 
-VCoherence = VCoherence - VStep;
+VCoherence = round(VCoherence - VStep, 5);
 end
 
 %% --------------------
@@ -262,7 +262,7 @@ while ACoherence >= AFloor
     % Playing Back Noise Response Period
     PresentDiscriminationPeriod('Did the stimulus appear in the first interval or second interval?\n Press the left arrow key for the first and right arrow key for the second', window, 0, ifi, isiDuration, 0, 0, 0, 0, rectCenter);
     
-    ACoherence = ACoherence - AStep;
+    ACoherence = round(ACoherence - AStep, 5);
 end 
 
 %% --------------------
@@ -352,7 +352,7 @@ while AVCoherence >= AVFloor
     
     % Playing Back Noise Response Period
     PresentDiscriminationPeriod('Did the stimulus appear in the first interval or second interval?\n Press the left arrow key for the first and right arrow key for the second', window, 0, ifi, isiDuration, 0, 0, 0, 0, rectCenter);
-    AVCoherence = AVCoherence - AVStep;
+    AVCoherence = round(AVCoherence - AVStep, 5);
 end
 PsychPortAudio('Close', pahandle);
 

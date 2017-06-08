@@ -1,6 +1,6 @@
 %This script generates moving noise
 %   creates several frames of noise and plays by picking a random one 
-Screen('Preference', 'SkipSyncTests', 1) %REMOVE THIS LATER!!!!
+%Screen('Preference', 'SkipSyncTests', 1) %REMOVE THIS LATER!!!!
 % Clear the workspace and the screen
 sca;
 close all;
@@ -9,9 +9,25 @@ clearvars;
 % INITIAL SET-UP
 %--------------------
 %BLOCK PARAMETERS
-VCoherence = 1;
-ACoherence = 1;
+VVCoherence = -1;
+VVFloor = 0;
+VVStep = .1;
+
+AACoherence = -1;
+AAFloor = 0;
+AAStep = .1;
+
+AVAVCoherence = -1;
+AVAVFloor = 0;
+AVAVStep = .1;
+
+VACoherence = -1;
+VAFloor = 0;
+VAStep = .1;
+
 AVCoherence = 1;
+AVFloor = 0;
+AVStep = .1;
 
 % Setup PTB with some default values
 PsychDefaultSetup(2);
@@ -31,6 +47,7 @@ grey = white / 2;
 
 %Query the time duration
 ifi = Screen('GetFlipInterval', window);
+refreshRate = 1/ifi;
 
 %Set the text font and size
 Screen('TextFont', window, 'Ariel');
@@ -71,7 +88,7 @@ waitForDeviceStart = 1;
 %--------------------
 preCIDuration = 1000;
 cueDuration = 500;
-postCIDuration = [500 1000];
+postCIDuration = [500 1500];
 stimDuration = 100;
 %% --------------------
 % Visual Noise Parameters & Generation
@@ -79,9 +96,6 @@ stimDuration = 100;
 length = 500;
 width = 500;
 waitframes = 1;
-
-timeSecs = vsDuration/1000;
-timeFrames = round(timeSecs ./ ifi);
 
 %Centering texture in center of window
 xPos = xCenter;
@@ -119,6 +133,19 @@ for frame = 1:round(refreshRate * cueDuration/1000)
     cueTextures(frame) = Screen('MakeTexture', window, visualCueMatrix);
 end
 
+cueFrequency = 500;
+cueCoherence = .65;
+
+%--------------------
+% Blank Stimuli Production
+%--------------------
+numTextures = 100;
+blank = zeros(width, length, numTextures);
+blank(:, :, :) = 0.5;
+for i = 1:numTextures
+    blankTextures(i) = Screen('MakeTexture', window, blank(:,:, i));
+end 
+
 %--------------------
 % Visual Gabor Paremeters
 %--------------------
@@ -135,7 +162,7 @@ blank = Screen('MakeTexture', window, 0);
 %--------------------
 % Pure Visual Block
 %--------------------
-while VCoherence > 0
+while VVCoherence >= VVFloor
 
 AnimationTextures = [];
 
@@ -146,14 +173,14 @@ AnimationTextures = AnimateTextureMatrix(AnimationTextures, cueTextures, cueDura
 %PostCI
 AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, postCIDuration, ifi);
 %Target Gabor
-AnimationTextures = AnimateNoisyGabor(AnimationTextures, gabor, noise, VCoherence, stimDuration, ifi, window);
+AnimationTextures = AnimateNoisyGabor(AnimationTextures, gabor, noise, VVCoherence, stimDuration, ifi, window);
 %preCI response period
 AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
 
 %Playing Back Animation
 vbl = PlayVisualAnimation(AnimationTextures, window, 0, ifi, 0, 0, 0, 0, rectCenter);
 
-VCoherence = VCoherence - .1
+VVCoherence = round(VVCoherence - VVStep, 5);
 end
 
 %% --------------------
@@ -161,18 +188,18 @@ end
 %--------------------
 % Auditory Parameters
 frequency = 1000;
-cueFrequency = 500;
+
 
 %Open audio port
 pahandle = PsychPortAudio('Open', [], 1, 1, sampleFreq, nrchannels, [], [], [], []);
 
-while audCoherence > 0
+while AACoherence >= AAFloor
     %Generating WAVS
-    ACoherence
+    AACoherence
     CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI1.WAV');
-    CreateNoisyWAV(cueFrequency, .9, cueDuration, sampleFreq, 'Cue.WAV');
+    CreateNoisyWAV(cueFrequency, cueCoherence, cueDuration, sampleFreq, 'Cue.WAV');
     CreateAuditoryNoise(postCIDuration, sampleFreq, 'PostCI.WAV');
-    CreateNoisyWAV(frequency, audCoherence, stimDuration, sampleFreq, 'TargetTone.WAV');
+    CreateNoisyWAV(frequency, AACoherence, stimDuration, sampleFreq, 'TargetTone.WAV');
     CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI2.WAV');    
     
     y1 = audioread('PreCI1.WAV');
@@ -192,54 +219,210 @@ while audCoherence > 0
     PsychPortAudio('FillBuffer', pahandle, y);
     PsychPortAudio('Start', pahandle, repetitions, startCue, waitForDeviceStart);
     PsychPortAudio('Stop', pahandle, 1, 1);
-    ACoherence = ACoherence - 1
+    AACoherence = round(AACoherence - AAStep, 5);
 end 
 
 %% --------------------
-%Multisensory Playback
+% Pure AV Block
 %--------------------
 %AV Noise #1
-while AVCoherence > 0
-    AVCoherence
+while AVAVCoherence >= AVAVFloor
+    AVAVCoherence
+    trialPostCIDuration = rand(1) * (postCIDuration(2) - postCIDuration(1)) + postCIDuration(1);
+    
     %auditory pregeneration
     CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI1.WAV');
-    CreateNoisyWAV(cueFrequency, .9, cueDuration, sampleFreq, 'Cue.WAV');
-    CreateAuditoryNoise(postCIDuration, sampleFreq, 'PostCI.WAV');
-    CreateNoisyWAV(frequency, audCoherence, stimDuration, sampleFreq, 'TargetTone.WAV');
+    CreateNoisyWAV(cueFrequency, cueCoherence, cueDuration, sampleFreq, 'Cue.WAV');
+    CreateAuditoryNoise(trialPostCIDuration, sampleFreq, 'PostCI.WAV');
+    CreateNoisyWAV(frequency, AVAVCoherence, stimDuration, sampleFreq, 'TargetTone.WAV');
     CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI2.WAV');  
     
     y1 = audioread('PreCI1.WAV');
     y1(:, 2) = y1(:, 1);
-    y1 = y1';
     y2 = audioread('Cue.WAV');
     y2(:, 2) = y2(:, 1);
-    y2 = y2';
     y3 = audioread('PostCI.WAV');
     y3(:, 2) = y3(:, 1);
-    y3 = y3';
     y4 = audioread('TargetTone.WAV');
     y4(:, 2) = y4(:, 1);
-    y4 = y4';
     y5 = audioread('PreCI2.WAV');
     y5(:, 2) = y5(:, 1);    
     
-    y = [y1; y3; y2];
+    y = [y1; y2; y3; y4; y5];
     y = y';
+    
     
     AnimationTextures = [];
     
-    %Generating Noise
-    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, vnDuration, ifi);
+    %preCI
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
+    %Cue
+    AnimationTextures = AnimateTextureMatrix(AnimationTextures, cueTextures, cueDuration, ifi);
+    %PostCI
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, trialPostCIDuration, ifi);
+    %Target Gabor
+    AnimationTextures = AnimateNoisyGabor(AnimationTextures, gabor, noise, AVAVCoherence, stimDuration, ifi, window);
+    %preCI response period
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
     
-    %Generating Noisy Gabor
-    AnimationTextures = AnimateNoisyGabor(AnimationTextures, gabor, noise, AVCoherence, vsDuration, ifi, window);
-    
-    %Generating Noise
-    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, vnDuration, ifi);
-    
-    %Play Back AV Animation
+    %Playing Back Animation
     vbl = PlayAVAnimation(AnimationTextures, y, pahandle, volume, window, 0, ifi, 0, 0, 0, 0, rectCenter);
     
-    AVCoherence = AVCoherence - .1;
+    
+    AVAVCoherence = round(AVAVCoherence - AVAVStep, 5);
 end
+%% --------------------
+% Pure V --> A Block
+%--------------------
+%AV Noise #1
+while VACoherence >= VAFloor
+    VACoherence
+    trialPostCIDuration = rand(1) * (postCIDuration(2) - postCIDuration(1)) + postCIDuration(1);
+    
+    %auditory pregeneration
+    CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI1.WAV');
+    CreateNoisyWAV(0, 0, cueDuration, sampleFreq, 'Cue.WAV');
+    CreateAuditoryNoise(trialPostCIDuration, sampleFreq, 'PostCI.WAV');
+    CreateNoisyWAV(frequency, VACoherence, stimDuration, sampleFreq, 'TargetTone.WAV');
+    CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI2.WAV');  
+    
+    y1 = audioread('PreCI1.WAV');
+    y1(:, 2) = y1(:, 1);
+    y2 = audioread('Cue.WAV');
+    y2(:, 2) = y2(:, 1);
+    y3 = audioread('PostCI.WAV');
+    y3(:, 2) = y3(:, 1);
+    y4 = audioread('TargetTone.WAV');
+    y4(:, 2) = y4(:, 1);
+    y5 = audioread('PreCI2.WAV');
+    y5(:, 2) = y5(:, 1);    
+    
+    y = [y1; y2; y3; y4; y5];
+    y = y';
+    
+    
+    AnimationTextures = [];
+    
+    %preCI
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
+    %Cue
+    AnimationTextures = AnimateTextureMatrix(AnimationTextures, cueTextures, cueDuration, ifi);
+    %PostCI
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, trialPostCIDuration, ifi);
+    %Blank Screen during Target Period
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, stimDuration, ifi);
+    %preCI response period
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
+    
+    %Playing Back Animation
+    vbl = PlayAVAnimation(AnimationTextures, y, pahandle, volume, window, 0, ifi, 0, 0, 0, 0, rectCenter);
+    
+    
+    VACoherence = round(VACoherence - VAStep, 5);
+end 
+    
+%% --------------------
+% Pure A --> V Block
+%--------------------
+%AV Noise #1
+while AVCoherence >= AVFloor
+    AVCoherence
+    trialPostCIDuration = rand(1) * (postCIDuration(2) - postCIDuration(1)) + postCIDuration(1);
+    
+    %auditory pregeneration
+    CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI1.WAV');
+    CreateNoisyWAV(cueFrequency, cueFrequency, cueDuration, sampleFreq, 'Cue.WAV');
+    CreateAuditoryNoise(trialPostCIDuration, sampleFreq, 'PostCI.WAV');
+    CreateNoisyWAV(frequency, 0, stimDuration, sampleFreq, 'TargetTone.WAV');
+    CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI2.WAV');  
+    
+    y1 = audioread('PreCI1.WAV');
+    y1(:, 2) = y1(:, 1);
+    y2 = audioread('Cue.WAV');
+    y2(:, 2) = y2(:, 1);
+    y3 = audioread('PostCI.WAV');
+    y3(:, 2) = y3(:, 1);
+    y4 = audioread('TargetTone.WAV');
+    y4(:, 2) = y4(:, 1);
+    y5 = audioread('PreCI2.WAV');
+    y5(:, 2) = y5(:, 1);    
+    
+    y = [y1; y2; y3; y4; y5];
+    y = y';
+    
+    
+    AnimationTextures = [];
+    
+    %preCI
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
+    %Cue
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, cueDuration, ifi);
+    %PostCI
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, trialPostCIDuration, ifi);
+    %Target Gabor
+    AnimationTextures = AnimateNoisyGabor(AnimationTextures, gabor, noise, AVCoherence, stimDuration, ifi, window);
+    %preCI response period
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
+    
+    %Playing Back Animation
+    vbl = PlayAVAnimation(AnimationTextures, y, pahandle, volume, window, 0, ifi, 0, 0, 0, 0, rectCenter);
+    
+    
+    AVCoherence = round(AVCoherence - AVStep, 5);
+end
+
+%% --------------------
+% Pure A --> AV Block
+%--------------------
+%AV Noise #1
+while AVAVCoherence >= AVAVFloor
+    AVAVCoherence
+    trialPostCIDuration = rand(1) * (postCIDuration(2) - postCIDuration(1)) + postCIDuration(1);
+    
+    %auditory pregeneration
+    CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI1.WAV');
+    CreateNoisyWAV(cueFrequency, cueCoherence, cueDuration, sampleFreq, 'Cue.WAV');
+    CreateAuditoryNoise(trialPostCIDuration, sampleFreq, 'PostCI.WAV');
+    CreateNoisyWAV(frequency, AVAVCoherence, stimDuration, sampleFreq, 'TargetTone.WAV');
+    CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI2.WAV');  
+    
+    y1 = audioread('PreCI1.WAV');
+    y1(:, 2) = y1(:, 1);
+    y2 = audioread('Cue.WAV');
+    y2(:, 2) = y2(:, 1);
+    y3 = audioread('PostCI.WAV');
+    y3(:, 2) = y3(:, 1);
+    y4 = audioread('TargetTone.WAV');
+    y4(:, 2) = y4(:, 1);
+    y5 = audioread('PreCI2.WAV');
+    y5(:, 2) = y5(:, 1);    
+    
+    y = [y1; y2; y3; y4; y5];
+    y = y';
+    
+    
+    AnimationTextures = [];
+    
+    %preCI
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
+    %Cue
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, cueDuration, ifi);
+    %PostCI
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, trialPostCIDuration, ifi);
+    %Target Gabor
+    AnimationTextures = AnimateNoisyGabor(AnimationTextures, gabor, noise, AVAVCoherence, stimDuration, ifi, window);
+    %preCI response period
+    AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, preCIDuration, ifi);
+    
+    %Playing Back Animation
+    vbl = PlayAVAnimation(AnimationTextures, y, pahandle, volume, window, 0, ifi, 0, 0, 0, 0, rectCenter);
+    
+    
+    AVAVCoherence = round(AVAVCoherence - AVAVStep, 5);
+end
+
+
 PsychPortAudio('Close', pahandle);
+
+KbStrokeWait;
+sca;

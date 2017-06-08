@@ -10,17 +10,17 @@ close all;
 clearvars;
 
 %BLOCK PARAMETERS
-VCoherence = -1;
+VCoherence = 1;
 VFloor = 0;
 VStep = .1;
 
-ACoherence = -1;
+ACoherence = 1;
 AFloor = 0;
 AStep = .1;
 
-AVCoherence = .1;
+AVCoherence = 1;
 AVFloor = 0;
-AVStep = .01;
+AVStep = .1;
 
 % Setup PTB with some default values
 PsychDefaultSetup(2);
@@ -136,7 +136,7 @@ AnimationTextures = AnimateVisualNoise(AnimationTextures, textures, vnDuration, 
 %Playing Back Animation
 vbl = PlayVisualAnimation(AnimationTextures, window, 0, ifi, 0, 0, 0, 0, rectCenter);
 
-VCoherence = VCoherence - VStep;
+VCoherence = round(VCoherence - VStep);
 end
 
 %% --------------------
@@ -171,7 +171,7 @@ while ACoherence >= AFloor
     PsychPortAudio('FillBuffer', pahandle, y);
     PsychPortAudio('Start', pahandle, repetitions, startCue, waitForDeviceStart);
     PsychPortAudio('Stop', pahandle, 1, 1);
-    ACoherence = ACoherence - AStep;
+    ACoherence = round(ACoherence - AStep, 5);
 end 
 
 %% --------------------
@@ -208,9 +208,10 @@ while AVCoherence >= AVFloor
     %Play Back AV Animation
     vbl = PlayAVAnimation(AnimationTextures, y, pahandle, volume, window, 0, ifi, 0, 0, 0, 0, rectCenter);
     
-    AVCoherence = AVCoherence - AVStep;
+    AVCoherence = round(AVCoherence - AVStep, 5);
 end
 PsychPortAudio('Close', pahandle);
 
 KbStrokeWait;
 sca;
+Screen('CloseAll')

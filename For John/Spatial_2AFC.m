@@ -10,15 +10,15 @@ close all;
 clearvars;
 
 %BLOCK PARAMETERS
-VCoherence = -1;
+VCoherence = 1;
 VFloor = 0;
 VStep = .1;
 
-ACoherence = -1;
+ACoherence = 1;
 AFloor = 0;
 AStep = .1;
 
-AVCoherence = .1;
+AVCoherence = 1;
 AVFloor = 0;
 AVStep = .1;
 
@@ -190,7 +190,7 @@ vbl = PresentSSAnimatedNoise2(textures, crossTexture, window, vbl, ifi, vnDurati
 %     vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
 %     
 %  end
-VCoherence = VCoherence - VStep;
+VCoherence = round(VCoherence - VStep, 5);
 end
 
 %% --------------------
@@ -204,7 +204,7 @@ frequency = 1000;
 %Open audio port
 pahandle = PsychPortAudio('Open', [], 1, 1, sampleFreq, nrchannels, [], [], [], []);
 
-while ACoherence > 0
+while ACoherence >= AFloor
     %Generating WAVS
     ACoherence
     CreateAuditoryNoise(anDuration, sampleFreq, 'Noise1.WAV');
@@ -224,7 +224,7 @@ while ACoherence > 0
     PsychPortAudio('FillBuffer', pahandle, y);
     PsychPortAudio('Start', pahandle, repetitions, startCue, waitForDeviceStart);
     PsychPortAudio('Stop', pahandle, 1, 1);
-    ACoherence = ACoherence - AStep;
+    ACoherence = round(ACoherence - AStep,  5);
 end 
 
 %% --------------------
@@ -259,9 +259,10 @@ while AVCoherence >= AVFloor
     vbl = PresentSSAnimatedAVNoiseGabor(stimulusTextures, y3, textures, crossTexture, pahandle, volume, window, vbl, ifi, vsDuration, 0, 0, 0, 0, 0, dstRectsShuffled);
     vbl = PresentSSAVNoise2(textures, y2, crossTexture, pahandle, volume, window, 0, ifi, vnDuration, 0, 0, 0, 0, dstRects);
     
-    AVCoherence = AVCoherence - AVStep;
+    AVCoherence = round(AVCoherence - AVStep, 5);
 end
 PsychPortAudio('Close', pahandle);
 
 KbStrokeWait;
+Screen('CloseAll')
 sca;
