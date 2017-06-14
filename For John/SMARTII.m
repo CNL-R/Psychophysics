@@ -9,29 +9,29 @@ clearvars;
 % INITIAL SET-UP
 %--------------------
 %BLOCK PARAMETERS
-VVCoherence = -1;
+VVCoherence = 1;
 VVFloor = 0;
 VVStep = .1;
 
-AACoherence = -1;
+AACoherence = 1;
 AAFloor = 0;
-AAStep = .1;
+AAStep = .3;
 
-AVAVCoherence = -1;
+AVAVCoherence = 1;
 AVAVFloor = 0;
-AVAVStep = .1;
+AVAVStep = .3;
 
-VACoherence = -1;
+VACoherence = 1;
 VAFloor = 0;
-VAStep = .1;
+VAStep = .3;
 
-AVCoherence = -1;
+AVCoherence = 1;
 AVFloor = 0;
-AVStep = .1;
+AVStep = .3;
 
 A_AVCoherence = 1;
 A_AVFloor = 0;
-A_AVStep = .1;
+A_AVStep = .3;
 
 % Setup PTB with some default values
 PsychDefaultSetup(2);
@@ -335,7 +335,7 @@ while AVCoherence >= AVFloor
     
     %auditory pregeneration
     CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI1.WAV');
-    CreateNoisyWAV(cueFrequency, cueFrequency, cueDuration, sampleFreq, 'Cue.WAV');
+    CreateNoisyWAV(cueFrequency, cueCoherence, cueDuration, sampleFreq, 'Cue.WAV');
     CreateAuditoryNoise(trialPostCIDuration, sampleFreq, 'PostCI.WAV');
     CreateNoisyWAV(frequency, 0, stimDuration, sampleFreq, 'TargetTone.WAV');
     CreateAuditoryNoise(preCIDuration, sampleFreq, 'PreCI2.WAV');  
