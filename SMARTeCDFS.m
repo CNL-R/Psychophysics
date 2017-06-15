@@ -13,7 +13,7 @@ folders = dir(direc);
 id = {folders([folders(:).isdir]).name};               %get the names of the folders in the root directory, ignore anything else
 id(ismember(id,{'.','..'})) = [];                      %if the root folder is not actually a root (it almost always won't be), remove the "." and ".." entries.
 
-nconds = 4;                                           %14 conditions (0=error, 1=click, 2=audio only, 3=visual only, 4=audiovisual only....)
+nconds = 64;                                           %14 conditions (0=error, 1=click, 2=audio only, 3=visual only, 4=audiovisual only....)
 removethresh = 100;                                    %ms threshold for physiologically possible responses
 data = [];                                             %create empty data array, this will hold all the data in the order of the files, then stimuli, as presented
 indcell = {};                                          %placeholder for incoming individual participant data, will be stored in cell array as different participants will have different numbers of trials

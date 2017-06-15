@@ -14,8 +14,8 @@ folders = dir(direc);
 id = {folders([folders(:).isdir]).name};               %get the names of the folders in the root directory, ignore anything else
 id(ismember(id,{'.','..'})) = [];                      %if the root folder is not actually a root (it almost always won't be), remove the "." and ".." entries.
 
-nconds = 37;                                           %14 conditions (0=error, 1=click, 2=audio only, 3=visual only, 4=audiovisual only....)
-ncondsSeparate = 14;                                    %number of separate analysis conditions, 1 = VVV, 2 = AVV, 3 = AAA, 4 = VAA
+nconds = 64;                                           %14 conditions (0=error, 1=click, 2=audio only, 3=visual only, 4=audiovisual only....)
+ncondsSeparate = 16;                                    %number of separate analysis conditions, 1 = VVV, 2 = AVV, 3 = AAA, 4 = VAA
 removethresh = 100;                                    %ms threshold for physiologically possible responses
 data = [];                                             %create empty data array, this will hold all the data in the order of the files, then stimuli, as presented
 indcell = {};                                          %placeholder for incoming individual participant data, will be stored in cell array as different participants will have different numbers of trials
@@ -68,6 +68,7 @@ for j = 1:size(id,2)                                   %loop iterating through i
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 1;
                 indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
                 indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
+                indpossibleSeparate(indpossibleSeparateIndex, 4) = 
                 indpossibleSeparateIndex = indpossibleSeparateIndex + 1;
             elseif (indpossible(i, 1) == 8) && (indpossible(i-1, 1)  == 10) %@AVV
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 2;
@@ -98,42 +99,52 @@ for j = 1:size(id,2)                                   %loop iterating through i
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 7;
                 indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
                 indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
-                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;        
+                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;
             elseif (indpossible(i, 1) == 5) && (indpossible(i-1, 1)  == 10) %@AVA
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 8;
                 indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
                 indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
-                indpossibleSeparateIndex = indpossibleSeparateIndex + 1; 
-            elseif (indpossible(i, 1) == 10) && (indpossible(i-1, 1)  == 6) %@AV -> A -> V
+                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;
+            elseif (indpossible(i, 1) == 57) && (indpossible(i-1, 1)  == 57) %@A->A->A In a AV+A Mixed
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 9;
                 indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
                 indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
-                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;  
-            elseif (indpossible(i, 1) == 5) && (indpossible(i-1, 1)  == 9) %@AV -> V -> A
+                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;
+            elseif (indpossible(i, 1) == 57) && (indpossible(i-1, 1)  == 56) %@AV->A->A in a AV+A Mixed
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 10;
                 indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
                 indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
-                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;     
-            elseif (indpossible(i, 1) == 9) && (indpossible(i-1, 1)  == 11) %@V -> AV -> V
+                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;
+            elseif (indpossible(i, 1) == 56) && (indpossible(i-1, 1)  == 63) %@A->AV->A in AV + A Mixed
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 11;
                 indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
                 indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
-                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;
-            elseif (indpossible(i, 1) == 9) && (indpossible(i-1, 1)  == 13) %@A -> AV -> V
+                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;   
+            elseif (indpossible(i, 1) == 56) && (indpossible(i-1, 1)  == 62) %@AV->AV->A
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 12;
                 indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
                 indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
-                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;        
-            elseif (indpossible(i, 1) == 6) && (indpossible(i-1, 1)  == 13) %@A -> AV -> A
+                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;  
+            elseif (indpossible(i, 1) == 63) && (indpossible(i-1, 1)  == 57) %@A->A->AV
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 13;
                 indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
                 indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
-                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;  
-            elseif (indpossible(i, 1) == 6) && (indpossible(i-1, 1)  == 11) %@V -> AV -> A
+                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;    
+            elseif (indpossible(i, 1) == 63) && (indpossible(i-1, 1)  == 56) %@AV->A->AV
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 14;
                 indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
                 indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
-                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;                
+                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;    
+            elseif (indpossible(i, 1) == 62) && (indpossible(i-1, 1)  == 63) %@A->AV->AV
+                indpossibleSeparate(indpossibleSeparateIndex, 1) = 15;
+                indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
+                indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
+                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;  
+            elseif (indpossible(i, 1) == 62) && (indpossible(i-1, 1)  == 62) %@AV->AV->AV
+                indpossibleSeparate(indpossibleSeparateIndex, 1) = 16;
+                indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
+                indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
+                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;                 
             end
         end
     end
@@ -177,5 +188,7 @@ for i = 1:ncondsSeparate
     groupidxSeparate = 1:size(inddataSeparate);
     groupmeandataSeparate(i, :) = [mean(inddataSeparate(groupidxSeparate, i, 1)) std(inddataSeparate(groupidxSeparate, i, 1))];
 end
-outputSeparate = groupmeandataSeparate
-output = allmeandata
+outputSeparate = groupmeandataSeparate;
+outputSeparate(:, 3) = 1:size(outputSeparate, 1)
+output = allmeandata;
+output(:, 4) = 0:nconds - 1
