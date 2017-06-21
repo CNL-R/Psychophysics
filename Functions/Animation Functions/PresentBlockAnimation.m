@@ -1,4 +1,4 @@
-function [vbl,respMade,rt] = PlayAVAnimation(AnimationTextures, AudioMatrix, responseWindowMatrix, pahandle, volume, window, vbl, ifi, GetResp, tStart, PreviousRespMade, rt, rectCenter)
+function  = PlayBlockAnimation(AnimationTextures, AudioMatrix, responseWindowMatrix, pahandle, volume, window, vbl, ifi, rectCenter)
 %Plays a visual stimulus for the given Duration in ms. Will generate a vbl if no vbl is given. Has ability to receive user input in form of key press or rt. Works by
 %choosing a random image from a pool of noise images to be presented for each frame. Must first give this function a pool of textures in a one dimensional matrix. 
 %   
