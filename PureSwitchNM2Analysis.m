@@ -15,7 +15,7 @@ id = {folders([folders(:).isdir]).name};               %get the names of the fol
 id(ismember(id,{'.','..'})) = [];                      %if the root folder is not actually a root (it almost always won't be), remove the "." and ".." entries.
 
 nconds = 64;                                           %14 conditions (0=error, 1=click, 2=audio only, 3=visual only, 4=audiovisual only....)
-ncondsSeparate = 16;                                    %number of separate analysis conditions, 1 = VVV, 2 = AVV, 3 = AAA, 4 = VAA
+ncondsSeparate = 31;                                    %number of separate analysis conditions, 1 = VVV, 2 = AVV, 3 = AAA, 4 = VAA
 removethresh = 100;                                    %ms threshold for physiologically possible responses
 data = [];                                             %create empty data array, this will hold all the data in the order of the files, then stimuli, as presented
 indcell = {};                                          %placeholder for incoming individual participant data, will be stored in cell array as different participants will have different numbers of trials
@@ -55,13 +55,61 @@ for j = 1:size(id,2)                                   %loop iterating through i
     end
     alltrials{j,:} = indalltrials; %Stores all individual trial data for each participant for each individual array the dimensions are - trials x [trigger-value reaction-time ISI-from-prev-stim]
     
-    indremoveidx = find(indalltrials(:,2)<removethresh); %NOTE: WE ARE STILL INSIDE THE INDIVIDUAL PARTICIPANT LOOP; for this participant, find the trials where the response was less than removethresh
-    indpossible = indalltrials;                          %create a new array that will only have realistic responses
-    indpossible(indremoveidx,:) = [];                    %remove the unrealistic responses
+                                                            %NOTE: WE ARE STILL INSIDE THE INDIVIDUAL PARTICIPANT LOOP; for this participant, find the trials where the response was less than removethresh
+    indpossible = indalltrials;   
+                  
     
     indpossibleSeparateIndex = 1;
     indpossibleSeparate = [];
-    %@LOOP TO EXTRACT VVV, AVV, AAA and VAA
+    
+    pureBlocks = [2,3,4];
+    pureSwitchBlocks = [22,23;33,36;32,34];
+    mixedBlocks = [5,7,8,10;48,49,51,52;56,57,62,63];
+    
+    removeindx = [];
+    removeResponseIndx = [];
+    
+    %Loop to remove all 1's and 252s(from double responses)
+    for i = 1:size(indpossible)
+        if indpossible(i, 1) == 1 || indpossible(i, 1) == 252
+            removeResponseIndx = [removeResponseIndx i];
+        end 
+    end
+    indpossible(removeResponseIndx,:) = [];
+    
+    %Loop to remove all start of block outliers 
+    for i = 2:size(indpossible)
+            %Checking pureblocks for start of block outliers and building a list of indexes for those to be removed
+            for pureBlocksIndx = 1:numel(pureBlocks)
+                if indpossible(i, 1) == pureBlocks(pureBlocksIndx) && indpossible(i-1, 1) ~= pureBlocks(pureBlocksIndx)
+                    removeindx = [removeindx i];
+                end
+            end
+            
+            %Checking pureswitchblocks for start of block outliers and building a list of indexes for those to be removed
+            for pureSwitchIndx1 = 1:size(pureSwitchBlocks,1)
+                for pureSwitchIndx2 = 1:size(pureSwitchBlocks,2)
+                    if indpossible(i,1) == pureSwitchBlocks(pureSwitchIndx1,pureSwitchIndx2) && numel(find(pureSwitchBlocks(pureSwitchIndx1, :) == indpossible(i - 1, 1))) == 0
+                        removeindx = [removeindx i];
+                    end 
+                end 
+            end
+            
+            %Checking mixedblocks for start of block outliers and building a list of indexes for those to be removed
+            for mixedBlocksIndx1 = 1:size(mixedBlocks,1)
+                for mixedBlocksIndx2 = 1:size(mixedBlocks,2)
+                    if indpossible(i,1) == mixedBlocks(mixedBlocksIndx1,mixedBlocksIndx2) && numel(find(mixedBlocks(mixedBlocksIndx1,:) == indpossible(i - 1,1))) == 0
+                        removeindx = [removeindx i];
+                    end
+                end
+            end
+    end
+    
+    %removing using removeindx
+    indpossibleCopy = indpossible; %making copy of indpossible for future reference
+    indpossible(removeindx, :) = [];
+    
+    %@LOOP TO EXTRACT n - 2 trials 
     for i = 1:size(indpossible)
         if i > 1
             if (indpossible(i, 1) == 8) && (indpossible(i-1, 1) == 8) %@VVV
@@ -80,6 +128,7 @@ for j = 1:size(id,2)                                   %loop iterating through i
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 3;
                 indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
                 indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
+                indpossibleSeparate(indpossibleSeparateIndex, 4) = i;
                 indpossibleSeparateIndex = indpossibleSeparateIndex + 1;
             elseif (indpossible(i, 1) == 7) && (indpossible(i-1, 1)  == 5) %@VAA
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 4;
@@ -97,6 +146,7 @@ for j = 1:size(id,2)                                   %loop iterating through i
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 6;
                 indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
                 indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
+                indpossibleSeparate(indpossibleSeparateIndex, 4) = i;
                 indpossibleSeparateIndex = indpossibleSeparateIndex + 1;
             elseif (indpossible(i, 1) == 5) && (indpossible(i-1, 1)  == 8) %@VVA
                 indpossibleSeparate(indpossibleSeparateIndex, 1) = 7;
@@ -157,10 +207,16 @@ for j = 1:size(id,2)                                   %loop iterating through i
                 indpossibleSeparate(indpossibleSeparateIndex, 2) = indpossible(i, 2);
                 indpossibleSeparate(indpossibleSeparateIndex, 3) = indpossible(i, 3);
                 indpossibleSeparate(indpossibleSeparateIndex, 4) = i;
-                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;                 
+                indpossibleSeparateIndex = indpossibleSeparateIndex + 1;               
             end
+            
         end
     end
+    
+    indremoveidx = find(indpossible(:,2)<removethresh);    %Removing stimuli below threshold down here because before, a below threshold stimulus was                                                     
+    indpossible(indremoveidx,:) = [];                           %before precedence logic was checked, causing massive issues. 
+    indremoveidxSeparate = find(indpossibleSeparate(:,2)<removethresh);
+    indpossibleSeparate(indremoveidxSeparate,:) = [];  
     
     indcell{j} = indpossible;                            %store the individual participant realistic data in the growing "indcell" cell array, which will contain all individual trial data for all participants
     indcellSeparate{j} = indpossibleSeparate;                           %@creating indcellSeparate which is going to contain only trials of separate analysis we are interested in like VVV, AVV, etc...
@@ -193,13 +249,13 @@ allpossibledata(allremoveidx,:) = [];              %We're not going to do anythi
 
 allmeandata = [];                                  %create array for averages, again this is for the pile 'o trials data, which we won't be doing much with
 for i = 1:nconds                                   %for every condition
-    allcondidx = find(allpossibledata(:,1)==i-1);
-    allmeandata(i,:) = [mean(allpossibledata(allcondidx,2)) std(allpossibledata(allcondidx,2)) length(allcondidx)]; %take the mean of the data for each condition (first column), the SD (second column, and give the n (third)
+    allcondidx = find(indpossible(:,1)==i-1);
+    allmeandata(i,:) = [mean(inddata(:,i,1)) std(inddata(:,i,1)) length(allcondidx)]; %take the mean of the data for each condition (first column), the SD (second column, and give the n (third)
 end
 
 for i = 1:ncondsSeparate
-    groupidxSeparate = 1:size(inddataSeparate);
-    groupmeandataSeparate(i, :) = [mean(inddataSeparate(groupidxSeparate, i, 1)) std(inddataSeparate(groupidxSeparate, i, 1))];
+
+    groupmeandataSeparate(i, :) = [mean(inddataSeparate(:, i, 1)) std(inddataSeparate(:, i, 1))];
 end
 outputSeparate = groupmeandataSeparate;
 outputSeparate(:, 3) = 1:size(outputSeparate, 1)
