@@ -1,3 +1,8 @@
+%Current Version:
+%   Does both NM2 and NM1 analysis for ALL conditions. 
+%   NM2 analysis in both groupmeandataSeparate and indseqcondcell formats. 
+%   Calculates Median in addition to Mean. 
+
 
 %%%%%%%%%%%
 %%PHASE I%%
@@ -302,15 +307,14 @@ for j = 1:size(id,2)                                   %loop iterating through i
     indcellSeparate{j} = indpossibleSeparate;                           %@creating indcellSeparate which is going to contain only trials of separate analysis we are interested in like VVV, AVV, etc...
     
     
-    for k = 1:nconds                                     %calculate the mean reaction times across participants for each condition
-        
+    for k = 1:nconds                                     %calculate the mean reaction times across participants for each condition   
         indcondidx = find(indpossible(:,1)==k-1);
-        inddata(j,k,:) = [mean(indpossible(indcondidx,2)) std(indpossible(indcondidx,2)) length(indcondidx)]; %store the mean reaction times for each participant for each condition in the inddata array
+        inddata(j,k,:) = [mean(indpossible(indcondidx,2)) std(indpossible(indcondidx,2)) length(indcondidx) median(indpossible(indcondidx,2))]; %store the mean reaction times for each participant for each condition in the inddata array
     end
     
     for k = 1:ncondsSeparate                                     %@calculate the mean reaction times across participants for each Separate analysis condition (VVV, AAA, AVV, VAA, etc..)
         indcondidxSeparate = find(indpossibleSeparate(:,1)==k);
-        inddataSeparate(j,k,:) = [mean(indpossibleSeparate(indcondidxSeparate,2)) std(indpossibleSeparate(indcondidxSeparate,2)) length(indcondidxSeparate)]; %store the mean reaction times for each participant for each condition in the inddata array
+        inddataSeparate(j,k,:) = [mean(indpossibleSeparate(indcondidxSeparate,2)) std(indpossibleSeparate(indcondidxSeparate,2)) length(indcondidxSeparate) median(indpossibleSeparate(indcondidxSeparate,2))]; %store the mean reaction times for each participant for each condition in the inddata array
     end
 
     %virtualconditions - the next three loops manage the creation of what
@@ -331,20 +335,24 @@ allpossibledata(allremoveidx,:) = [];              %We're not going to do anythi
 allmeandata = [];                                  %create array for averages, again this is for the pile 'o trials data, which we won't be doing much with
 for i = 1:nconds                                   %for every condition
     allcondidx = find(indpossible(:,1)==i-1);
-    allmeandata(i,:) = [mean(inddata(:,i,1)) std(inddata(:,i,1)) length(allcondidx)]; %take the mean of the data for each condition (first column), the SD (second column, and give the n (third)
+    allmeandata(i,:) = [mean(inddata(:,i,1)) std(inddata(:,i,1)) length(allcondidx) mean(inddata(:,i,4))]; %take the mean of the data for each condition (first column), the SD (second column, and give the n (third)
 end
 
 for i = 1:ncondsSeparate
-
-    groupmeandataSeparate(i, :) = [mean(inddataSeparate(:, i, 1)) std(inddataSeparate(:, i, 1))];
+    groupmeandataSeparate(i, :) = [mean(inddataSeparate(:, i, 1)) std(inddataSeparate(:, i, 1)) mean(inddataSeparate(:,i,4))];
 end
 outputSeparate = groupmeandataSeparate;
-outputSeparate(:, 3) = 1:size(outputSeparate, 1)
+outputSeparate(:, 4) = 1:size(outputSeparate, 1)
 output = allmeandata;
-output(:, 4) = 0:nconds - 1
+output(:, 5) = 0:nconds - 1
 
 filename = 'nm2AllConds.xlsx';
 xlswrite(filename,outputSeparate(:,1:2),1,'B1:C30');
 xlswrite(filename,output(:,1:2),1,'F1:G14');
 xlswrite(filename,inddataSeparate(:,:,1),1,'J2:AM35');
 xlswrite(filename,inddata(:,:,1),1,'J40:W73');
+
+xlswrite(filename,outputSeparate(:,3),2,'B1:B30');
+xlswrite(filename,output(3:end,4),2,'E1:E12');
+xlswrite(filename,inddataSeparate(:,:,4),2,'J2:AM35');
+xlswrite(filename,inddata(:,:,4),2,'J40:W73');
