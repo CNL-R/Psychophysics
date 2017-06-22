@@ -20,6 +20,9 @@ removethresh = 100;                                    %ms threshold for physiol
 data = [];                                             %create empty data array, this will hold all the data in the order of the files, then stimuli, as presented
 indcell = {};                                          %placeholder for incoming individual participant data, will be stored in cell array as different participants will have different numbers of trials
 inddata = [];                                          %place holder for incoming mean individual data, this is a standard array as each participant will have 1 mean, 1 std for each condition.
+%Putting filtered data into indseqcondcell
+indseqcondcell = cell(size(id,2),nconds,nconds);
+
 for j = 1:size(id,2)                                   %loop iterating through individual data directories
     filelist = ls(fullfile(direc,id{j},'*log'));       %list the files in the directory that end with the .log extension
     indalltrials = [];                                 %placeholder for incoming data
@@ -109,9 +112,18 @@ for j = 1:size(id,2)                                   %loop iterating through i
     indpossibleCopy = indpossible; %making copy of indpossible for future reference
     indpossible(removeindx, :) = [];
     
+    indremoveidx = find(indpossible(:,2)<removethresh);    %Removing stimuli below threshold down here because before, a below threshold stimulus was
+    indpossible(indremoveidx,:) = [];                           %before precedence logic was checked, causing massive issues.
     
+    %Extracting n-2 trials to indseqcondcell
+    for k = 2:length(indpossible)
+        cond = indpossible(k,1);
+        previousCond = indpossible(k-1, 1);
+        indseqcondcell{j,previousCond, cond} = [indseqcondcell{j, previousCond, cond}; indpossible(k, 2)];
+    end
     
-    %@LOOP TO EXTRACT n - 2 trials 
+
+    %@LOOP TO EXTRACT n - 2 trials
     for i = 1:size(indpossible)
         if i > 1
             if (indpossible(i, 1) == 7) && (indpossible(i-1, 1) == 7) %@AAA
@@ -281,10 +293,10 @@ for j = 1:size(id,2)                                   %loop iterating through i
         end
     end
     
-    indremoveidx = find(indpossible(:,2)<removethresh);    %Removing stimuli below threshold down here because before, a below threshold stimulus was                                                     
-    indpossible(indremoveidx,:) = [];                           %before precedence logic was checked, causing massive issues. 
+    %Removing physiologically impossible responses from indpossibleSeparate
+    %for good mesasure
     indremoveidxSeparate = find(indpossibleSeparate(:,2)<removethresh);
-    indpossibleSeparate(indremoveidxSeparate,:) = [];  
+    indpossibleSeparate(indremoveidxSeparate,:) = [];
     
     indcell{j} = indpossible;                            %store the individual participant realistic data in the growing "indcell" cell array, which will contain all individual trial data for all participants
     indcellSeparate{j} = indpossibleSeparate;                           %@creating indcellSeparate which is going to contain only trials of separate analysis we are interested in like VVV, AVV, etc...
