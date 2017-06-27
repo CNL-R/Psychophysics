@@ -65,7 +65,7 @@ sizeY = 500;                                                   % This code creat
 numberNoiseTextures = 100;                                     %    to create the animated noise. numberNoiseTextures is the size of that pool
 noiseMatrix = rand(sizeY, sizeX, numberNoiseTextures);         % Pixel value matrices are converted to textures and stored in noiseTextures
 for noiseTexture = 1:numberNoiseTextures
-    noiseTextures(noiseTexture) = %%%%I WAS HERE: NEED TO CONVERT OLD NOISE TO TEXTURES
+    noiseTextures(noiseTexture) = 
     for i = 1:sizeY
         for j = 1:sizeX
             if rand(1) < .5
