@@ -18,6 +18,7 @@ screenNumber = max(Screen('Screens'));                                      % Se
 white = WhiteIndex(screenNumber);                                           % Define black, white and grey
 black = BlackIndex(screenNumber);
 grey = white / 2;
+PsychDebugWindowConfiguration(1, 1);
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, grey, [], 32, 2, [], [],  kPsychNeed32BPCFloat); % Open the screen
 ifi = Screen('GetFlipInterval', window);                                    %Query the monitor flip interval
 Screen('TextFont', window, 'Ariel');                                        %Set the text font and size
@@ -57,25 +58,12 @@ numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
 %Timing Information
 startDuration = 2000;                                          % Interval before first stimulus of each block in ms
 isiDuration = [1000 3000];                                     % Inter-stimulus-interval duration in ms
-stimulusDuration = 60;                                         % Duration stimulus is on screen in ms
+stimulusDuration = 100;                                         % Duration stimulus is on screen in ms
 blockMaxDuration = startDuration + numberTrialsPerBlock*(isiDuration(2)+stimulusDuration);
-%Generating Visual Noise
+
+
 sizeX = 500;                                                   % Dimmensions of the square noise patch
-sizeY = 500;                                                   % This code creates noise by pregenerating a pool of noise images which are sampled randomly
-numberNoiseTextures = 100;                                     %    to create the animated noise. numberNoiseTextures is the size of that pool
-noiseMatrix = rand(sizeY, sizeX, numberNoiseTextures);         % Pixel value matrices are converted to textures and stored in noiseTextures
-for noiseTexture = 1:numberNoiseTextures
-    noiseTextures(noiseTexture) = %%%%I WAS HERE: NEED TO CONVERT OLD NOISE TO TEXTURES
-    for i = 1:sizeY
-        for j = 1:sizeX
-            if rand(1) < .5
-                noiseMatrix(i,j, noiseTexture) = -1  * noiseMatrix(i,j, noiseTexture);
-            end
-        end
-    end
-end
-
-
+sizeY = 500;  
 %Generating Pure Fixation Cross
 crossLength = 50;
 crossWidth = 3;
@@ -87,6 +75,24 @@ cross( 1:crossLength, crossCenter-crossWidth:crossCenter+crossWidth) = 1;
 cross = EmbedInApperature(cross, 'rect', sizeX, sizeY, 0.5, 0.5);
 
 crossTexture = Screen('MakeTexture', window, cross);
+
+%Generating Visual Noise
+                                                 % This code creates noise by pregenerating a pool of noise images which are sampled randomly
+numberNoiseTextures = 100;                                     %    to create the animated noise. numberNoiseTextures is the size of that pool
+noiseMatrix = rand(sizeY, sizeX, numberNoiseTextures);         % Pixel value matrices are converted to textures and stored in noiseTextures
+for noiseTexture = 1:numberNoiseTextures
+%     noiseTextures(noiseTexture) = Screen('MakeTexture', window, noiseMatrix(:,:,noiseTexture));
+    noiseTextures(noiseTexture) = Screen('MakeTexture', window, cross);
+    for i = 1:sizeY
+        for j = 1:sizeX
+            if rand(1) < .5
+                noiseMatrix(i,j, noiseTexture) = -1  * noiseMatrix(i,j, noiseTexture);
+            end
+        end
+    end
+end
+
+
 
 %Generating Base Gabor
 gaborSize = 500;                                               % This is the diameter/length of any side of the gabor pixel matrix. 
@@ -164,8 +170,10 @@ for block = 1:3%numberBlocks
         end
         %Building stimulus
         if blockMatrix(block) == 1
-            [visualMatrix responseWindowMatrix] = AnimateNoisyGabor3(visualMatrix, gaborMatrix, noiseMatrix, responseWindowMatrix, coherence, stimulusDuration, ifi, window, 1); % Adding noisy gabor stimulus to visualMatrix
+            [visualMatrix responseWindowMatrix stimulusMatrix] = AnimateNoisyGabor3(visualMatrix, gaborMatrix, noiseMatrix, responseWindowMatrix, coherence, stimulusDuration, ifi, window, 1); % Adding noisy gabor stimulus to visualMatrix
             audioMatrix= AnimateAuditorySilence(audioMatrix, stimulusDuration, sampleFreq);                                                     % Adding silence to audioMatrix
+            figure
+            imshow(stimulusMatrix)
         elseif blockMatrix(block) == 2
             visualMatrix = AnimateVisualNoise2(visualMatrix, crossTexture, responseWindowMatrix, stimulusDuration, ifi, 1);                     % Adding fixation cross to visualMatrix
             [audioMatrix auditorySampleIndex]= AnimatePinkNoisyRipple(audioMatrix, pinkNoiseMatrix, frequency1, frequency2, coherence, stimulusDuration, sampleFreq, auditorySampleIndex);                     % Adding noisy ripple sound to audioMatrix

@@ -1,4 +1,4 @@
-function [AnimationTextures, responseWindowMatrix]= AnimateNoisyGabor3(AnimationTextures, gaborMatrix, noiseMatrices, responseWindowMatrix, coherence, duration, ifi, window, getResp)
+function [AnimationTextures, responseWindowMatrix, stimulusMatrix]= AnimateNoisyGabor3(AnimationTextures, gaborMatrix, noiseMatrices, responseWindowMatrix, coherence, duration, ifi, window, getResp)
 %AnimateNoisyGabor2 takes a 2D gabor pixel matrix and animates it embedded in noise, however, using a different method than in 
 %v1 and v2. This function does not normalize the gabor matrix and applies noise by numerically summing gabor matrix with
 %noise matrix ranging in values from -1 to 1. 
@@ -18,7 +18,6 @@ for frame = 1:round(refreshRate*duration/1000) %number of frames inside duration
     stimulusMatrix = ((coherence*gaborMatrix) + noiseMatrices(:,:,round(rand(1) * (numNoises- 1) + 1))+ 1)/ 2;
     stimulusTexture = Screen('MakeTexture', window, stimulusMatrix);
     AnimationTextures = [AnimationTextures stimulusTexture];
-    
     
 end 
 
