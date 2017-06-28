@@ -58,7 +58,7 @@ numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
 %Timing Information
 startDuration = 2000;                                          % Interval before first stimulus of each block in ms
 isiDuration = [1000 3000];                                     % Inter-stimulus-interval duration in ms
-stimulusDuration = 100;                                         % Duration stimulus is on screen in ms
+stimulusDuration = 60;                                         % Duration stimulus is on screen in ms
 blockMaxDuration = startDuration + numberTrialsPerBlock*(isiDuration(2)+stimulusDuration);
 
 
@@ -81,8 +81,7 @@ crossTexture = Screen('MakeTexture', window, cross);
 numberNoiseTextures = 100;                                     %    to create the animated noise. numberNoiseTextures is the size of that pool
 noiseMatrix = rand(sizeY, sizeX, numberNoiseTextures);         % Pixel value matrices are converted to textures and stored in noiseTextures
 for noiseTexture = 1:numberNoiseTextures
-%     noiseTextures(noiseTexture) = Screen('MakeTexture', window, noiseMatrix(:,:,noiseTexture));
-    noiseTextures(noiseTexture) = Screen('MakeTexture', window, cross);
+    noiseTextures(noiseTexture) = Screen('MakeTexture', window, noiseMatrix(:,:,noiseTexture));
     for i = 1:sizeY
         for j = 1:sizeX
             if rand(1) < .5
@@ -95,7 +94,7 @@ end
 
 
 %Generating Base Gabor
-gaborSize = 500;                                               % This is the diameter/length of any side of the gabor pixel matrix. 
+gaborSize = 300;                                               % This is the diameter/length of any side of the gabor pixel matrix. 
 sigma = 50;                                                    % Standard deviation of gaussian window in pixels
 lambda = 20;                                                   % Wavelength of sine wave grating in pixels per cycle
 orientation = 0;                                               % Orientation of gabor from 0 -> 2pi
@@ -103,7 +102,7 @@ phase = pi;                                                    % Phase of spatia
 amplitude = 1;                                                 % Amplitude is a variable that changes peak values of the spatial sine wave. Change to 0.5
                                                                %  to make spatial sine wave take values from -.5 to .5   
 
-gaborMatrix = CreateGabor3(gaborSize, sigma, lambda, orientation, phase, amplitude); %CreateGabor2 takes all of these parameters and spits out a pixel matrix for a gabor
+gaborMatrix = CreateGabor2(gaborSize, sigma, lambda, orientation, phase, amplitude); %CreateGabor2 takes all of these parameters and spits out a pixel matrix for a gabor
 
 %Visual Stimuli Parameters
 visualParameters = zeros(3, graduationsPerCondition);          % Matrix to keep track of parameters of each generated visual stimuli.
@@ -170,12 +169,12 @@ for block = 1:3%numberBlocks
         end
         %Building stimulus
         if blockMatrix(block) == 1
-            [visualMatrix responseWindowMatrix stimulusMatrix] = AnimateNoisyGabor3(visualMatrix, gaborMatrix, noiseMatrix, responseWindowMatrix, coherence, stimulusDuration, ifi, window, 1); % Adding noisy gabor stimulus to visualMatrix
+            [visualMatrix responseWindowMatrix] = AnimateNoisyGabor2(visualMatrix, gaborMatrix, noiseMatrix, responseWindowMatrix, coherence, stimulusDuration, ifi, window, 1); % Adding noisy gabor stimulus to visualMatrix
             audioMatrix= AnimateAuditorySilence(audioMatrix, stimulusDuration, sampleFreq);                                                     % Adding silence to audioMatrix
-            figure
-            imshow(stimulusMatrix)
+%             figure
+%             imshow(stimulusMatrix)
         elseif blockMatrix(block) == 2
-            visualMatrix = AnimateVisualNoise2(visualMatrix, crossTexture, responseWindowMatrix, stimulusDuration, ifi, 1);                     % Adding fixation cross to visualMatrix
+            [visualMatrix responseWindowMatrix]= AnimateVisualNoise2(visualMatrix, crossTexture, responseWindowMatrix, stimulusDuration, ifi, 1);                     % Adding fixation cross to visualMatrix
             [audioMatrix auditorySampleIndex]= AnimatePinkNoisyRipple(audioMatrix, pinkNoiseMatrix, frequency1, frequency2, coherence, stimulusDuration, sampleFreq, auditorySampleIndex);                     % Adding noisy ripple sound to audioMatrix
         end                                                                           
         

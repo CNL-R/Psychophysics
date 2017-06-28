@@ -1,7 +1,7 @@
-function [AnimationTextures, responseWindowMatrix] = AnimateVisualNoise2(AnimationTextures, noiseTextures, responseWindowMatrix, duration, ifi, getResp)
+function [AnimationTextures, responseWindowMatrix] = AnimateVisualNoise3(AnimationTextures, noiseTextures, responseWindowMatrix, duration, ifi, getResp)
 % AnimateVisualNoise takes noise textures and concatenates them onto an existing AnimationTexture (1D matrix containing textures). Duration can be a single value or bielement array containing desired
 % random presentation interval. Also outputs the duration in case the length of this duration is desired. 
-%Version 2 - builds responseWindowMatrix, a matrix containing the same
+%Version 3 - Averages noise fields to get a closer to mean gray noise
 %amount of frames as AnimationTextures, but with a 1 or 0 telling the code
 %whether or not to collect a response during this frame. 
 
@@ -13,10 +13,8 @@ end
 
 [bleh numTextures] = size(noiseTextures);
 refreshRate = 1/ifi; %calculating monitor refresh rate
-previous = 0;
 for frame = 1:round(refreshRate*duration/1000) %number of frames inside duration of presentation desired
-    [randindx, previous] = RNRInt(1, numTextures, previous);
-    AnimationTextures = [AnimationTextures noiseTextures(randindx)];
+    AnimationTextures = [AnimationTextures (noiseTextures(round(rand(1) * (numTextures - 1) + 1)) + noiseTextures(round(rand(1) * (numTextures - 1) + 1)))/2];
 end
 
 responseWindow = AnimationTextures;

@@ -52,19 +52,12 @@ gabor = grating .* gauss;
 for y = 1:Gabor_Diameter
     for x= 1:Gabor_Diameter
         if gaussindx(y,x) == 1
-             gabor(y,x) = NaN;     
+%             gabor(y,x) = -2 + rand(1) * 4;
+              gabor(y,x) = 0;
         end 
     end
 end 
 
-% % %changing value of floor color to mean gray
-% for y = 1:Gabor_Diameter
-%     for x = 1:Gabor_Diameter
-%         if gabor(y,x) ~= 0
-%             gabor(y,x) = (gabor(y,x)/2) + .5;
-%         end 
-%     end
-% end
 
 end 
 

@@ -22,8 +22,19 @@ end
 % amplitudeNoise = 1;
 % mash = ((amplitudeGabor*gabor + amplitudeNoise*noise) + 1)/2;
 
-amplitudeGabor = 0;
-amplitudeNoise = 1;
-mash = ((amplitudeGabor*gabor + amplitudeNoise*noise) + amplitudeNoise)/(amplitudeNoise*2);
-imshow(mash)
+%Previously Worked
+% amplitudeGabor = 1;
+% amplitudeNoise = 1;
+% mash = ((amplitudeGabor*gabor + amplitudeNoise*noise) + amplitudeNoise)/(amplitudeNoise*2);
+% imshow(mash)
 
+amplitudeGabor = .1;
+amplitudeNoise = 1;
+mash = ((amplitudeGabor*gabor + amplitudeNoise*noise));
+randos = (-2 + rand(gaborSize)*4) + (-2 + rand(gaborSize)*4) / 2; 
+mash(isnan(mash)) = randos(isnan(mash));
+mash = mash + abs(min(min(mash)));
+mash = mash / max(max(mash));
+imshow(mash)
+min(min(mash))
+max(max(mash))
