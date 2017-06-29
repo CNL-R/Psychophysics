@@ -48,10 +48,10 @@ shuffler = randperm(numberBlocks);                                          % De
 blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
 
 % Within Block Params & Logic                                               % Enter your within block experiment specific parameters here
-gradationsPerCondition = 10;                                               % 
-setsPerBlock = 15;                                                           % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
-stimuliPerBlock = gradationsPerCondition * setsPerBlock;
-catchTrialsPerBlock = 15;                                                   % How many catch trials do you want in a block?
+graduationsPerCondition = 10;                                               % 
+setsPerBlock = ;                                                           % How many sets of graduations per block? i.e 5 sets of 10 graduations = 50 non-catch trials per block
+stimuliPerBlock = graduationsPerCondition * setsPerBlock;
+catchTrialsPerBlock = stimuliPerBlock;                                      % How many catch trials do you want in a block?
 numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
 
 %-------------------
@@ -107,16 +107,16 @@ amplitude = 1;                                                 % Amplitude is a 
 gaborMatrix = CreateGabor2(gaborSize, sigma, lambda, orientation, phase, amplitude); %CreateGabor2 takes all of these parameters and spits out a pixel matrix for a gabor
 
 %Visual Stimuli Parameters
-visualParameters = zeros(3, gradationsPerCondition);          % Matrix to keep track of parameters of each generated visual stimuli.
-visualParameters(1,:) = [0 .025 .05 .075 .1 .125 .15 .175 .2 .3];  % Assigning coherences
+visualParameters = zeros(3, graduationsPerCondition);          % Matrix to keep track of parameters of each generated visual stimuli.
+visualParameters(1,:) = [0 .05 .1 .15 .2 .25 .3 .35 .4 .45];  % Assigning coherences
 visualParameters(2,:) = orientation;                           % Assigning orientations. 0->2pi
 visualParameters(3,:) = phase;                                 % Assigning phases. 0->2pi
 
 %Auditory Stimuli Parameters
 frequency1 = 1000;                                             %To create a ripple, two sine waves are multiplied with each other 
 frequency2 = 200;
-audioParameters = zeros(1, gradationsPerCondition);
-audioParameters(1,:) = [0 .025 .05 .075 .1 .125 .15 .175 .2 .3];
+audioParameters = zeros(1, graduationsPerCondition);
+audioParameters(1,:) = [0 .05 .1 .15 .2 .25 .3 .35 .4 .45];
 
 %Centering texture in center of window
 xPos = xCenter;

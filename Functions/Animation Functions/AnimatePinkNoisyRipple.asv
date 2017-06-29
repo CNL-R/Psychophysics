@@ -1,4 +1,4 @@
-function [AudioMatrix auditorySampleIndex] = AnimatePinkNoisyRipple(AudioMatrix, PinkNoiseMatrix, Frequency1, Frequency2, Coherence, Duration, SampleRate, auditorySampleIndex)
+function [AudioMatrix AuditorySampleIndex] = AnimatePinkNoisyRipple(AudioMatrix, PinkNoiseMatrix, Frequency1, Frequency2, Coherence, Duration, SampleRate, auditorySampleIndex)
 %Generates a sine wave, hides it in white noise and converts to audio WAV file. Also adds 5ms taper function
 %   Frquency in Hz
 %   Duration in ms
@@ -35,11 +35,12 @@ function [AudioMatrix auditorySampleIndex] = AnimatePinkNoisyRipple(AudioMatrix,
     lastt = size(t,2);
     
     samples = round(SampleRate*Duration);
-    pinknoiseY = PinkNoiseMatrix(:, auditorySampleIndex: auditorySampleIndex + samples - 1);
+    playUntil = auditorySampleIndex + samples - 1);
+    pinknoiseY = PinkNoiseMatrix(:, playUntil);
 %     maximum = max(pinknoiseY);                                                               %
 %     minimum = min(pinknoiseY);   
 %     pinknoiseY = pinknoiseY/max([abs(minimum) abs(maximum)]);
-    auditorySampleIndex = round(auditorySampleIndex + samples - 1);
+    AuditorySampleIndex = auditorySampleIndex + round(p)
     
     
 %     for i = 1:lastt

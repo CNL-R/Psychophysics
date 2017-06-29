@@ -1,4 +1,4 @@
-function [AnimationTextures, frameToTrialMatrix]= AnimateNoisyGabor2(AnimationTextures, gaborMatrix, noiseMatrices, frameToTrialMatrix, trial, coherence, duration, ifi, window)
+function [AnimationTextures, frameToTrialMatrix]= AnimateNoisyGabor2(AnimationTextures, gaborMatrix, noiseMatrices, frameToTrialMatrix, trial, coherence, duration, ifi, window, getResp)
 %AnimateNoisyGabor2 takes a 2D gabor pixel matrix and animates it embedded in noise. Provide pixel value matrices for noise in noiseMatrices
 %and gabor 2D Matrix as well as animationTextures matrix you are building into.
 

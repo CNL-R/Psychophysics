@@ -19,7 +19,7 @@ function [AudioMatrix, Duration, auditorySampleIndex] = AnimateAuditoryPinkNoise
 %     maximum = max(y);                                                               %
 %     minimum = min(y);                                                               %
 %     y = y/max([abs(minimum) abs(maximum)]);
-    audtiorySampleIndex = round(auditorySampleIndex + samples - 1);
+    auditorySampleIndex = round(auditorySampleIndex + samples - 1);
     AudioMatrix = [AudioMatrix y];
     
 end

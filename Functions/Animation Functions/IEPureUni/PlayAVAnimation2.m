@@ -1,4 +1,4 @@
-function [responseMatrix] = PlayAVAnimation2(AnimationTextures, AudioMatrix, responseMatrix, responseWindowMatrix, pahandle, volume, window, ifi, GetResp, tStart, PreviousRespMade, rt, rectCenter)
+function [responseMatrix] = PlayAVAnimation2(AnimationTextures, AudioMatrix, responseMatrix, frameToTrialMatrix, pahandle, volume, window, ifi, rectCenter)
 %Plays an AV animation given by an animation texture and audiomatrix. The 
 %   
 %   AnimationTextures - matrix of all textures being played. Can be generated from GenerateAnimatedNoiseGabor
@@ -29,8 +29,6 @@ waitForDeviceStart = 1;
 sampleFreq = 48000;
 nrchannels = 2;
 
-%setting respMade to previous response and setting default rt to 0
-respMade = PreviousRespMade;
 
 %setting number of frames to wait before redrawing
 waitframes = 1;
@@ -58,18 +56,17 @@ for frame = 1:timeFrames - 1
     %Flip to screen
     vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
     
-    if responseWindowMatrix(frame) == 1
-        %detecting response
-        KeyIsDown = KbCheck;
-        if KeyIsDown == 1
-            responseMatrix(1, trial) = 1;
-            tEnd = GetSecs;
-            responseMatrix(1, trial) = tEnd - tStart;
-        end
+    
+    %detecting response
+    KeyIsDown = KbCheck;
+    if KeyIsDown == 1
+        responseMatrix(1, trial) = 1;
     end
+    
+    trial = frameToTrialMatrix(frame);
 end
 
 end
-end
+
 
 
