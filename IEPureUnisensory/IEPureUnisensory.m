@@ -1,5 +1,5 @@
 %Inverse Effectiveness Pure Block Trials Only. Constant Stimuli. Paints Psychometric curve for A and V. 
-
+%TV- animation matrices based by trial. 
 % Clear the workspace and the screen
 sca;
 close all;
@@ -22,6 +22,7 @@ grey = white / 2;
 PsychDebugWindowConfiguration(1, 1);
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, grey, [], 32, 2, [], [],  kPsychNeed32BPCFloat); % Open the screen
 ifi = Screen('GetFlipInterval', window);                                    %Query the monitor flip interval
+refreshRate = 1/ifi;
 Screen('TextFont', window, 'Ariel');                                        %Set the text font and size
 Screen('TextSize', window, 40);
 topPriorityLevel = MaxPriority(window);                                     %Query the maximum priority level
@@ -43,15 +44,15 @@ waitForDeviceStart = 1;
 numberConditions = 2;
 blocksPerCondition = 1;
 numberBlocks = numberConditions * blocksPerCondition;
-blockMatrix = repmat(1:numberConditions, 1, blocksPerCondition);           % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
+blockMatrix = [1 2];%repmat(1:numberConditions, 1, blocksPerCondition);           % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
 shuffler = randperm(numberBlocks);                                          % Declaring shuffler matrix to shuffle blockMatrix
-blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
+%blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
 
 % Within Block Params & Logic                                               % Enter your within block experiment specific parameters here
 gradationsPerCondition = 10;                                               % 
-setsPerBlock = 15;                                                           % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
+setsPerBlock = 1%15;                                                           % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
 stimuliPerBlock = gradationsPerCondition * setsPerBlock;
-catchTrialsPerBlock = 15;                                                   % How many catch trials do you want in a block?
+catchTrialsPerBlock = 0;                                                   % How many catch trials do you want in a block?
 numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
 
 %-------------------
@@ -59,10 +60,12 @@ numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
 %-------------------
 %Timing Information
 startDuration = 2000;                                          % Interval before first stimulus of each block in ms
+startDurationAuditory = (fix(startDuration/1000*refreshRate)) * (1/refreshRate) * 1000;
 isiDurationPossible = [1000 3000];                                     % Inter-stimulus-interval duration in ms
 stimulusDuration = 60;                                         % Duration stimulus is on screen in ms
-blockMaxDuration = startDuration + numberTrialsPerBlock*(isiDurationPossible(2)+stimulusDuration);
+stimulusDurationAuditory = (fix(stimulusDuration/1000*refreshRate)) *  (1/refreshRate) * 1000;
 
+blockMaxDuration = startDuration + numberTrialsPerBlock*(isiDurationPossible(2)+stimulusDuration);
 
 sizeX = 500;                                                   % Dimmensions of the square noise patch
 sizeY = 500;  
@@ -144,47 +147,47 @@ rectCenter = CenterRectOnPointd(baseRect, xPos, yPos);
  end
 
 for block = 1:2%numberBlocks
-
+    ['block ' int2str(block)]
     %Generating Animation Matrices for this block
-    visualMatrix = [];                                                                       % Initializing visualMatrix, a 1D array containing textures for the entire block.
-    audioMatrix = [];                                                                        % Initializing audioMatrix, a 2xtrials array containing audio information for the entire block
+    visualCell = cell(1,trialsPerBlock);
+    audioCell = cell(1,trialsPerBlock);
+    visualTrialMatrix = [];                                                                       % Initializing visualTrialMatrix, a 1D array containing textures for the entire block.
+    audioTrialMatrix = [];                                                                        % Initializing audioTrialMatrix, a 2xtrials array containing audio information for the entire block
     frameToTrialMatrix = [];                                                               % Initializing frameToTrialMatrix, a 2D array containing response windows for the entire block
     tempResponseMatrix = zeros(1, trialsPerBlock);
     pinkNoiseMatrix = GenerateAuditoryPinkNoise(blockMaxDuration, sampleFreq);             % Generating all of the pink noise for this block
     auditorySampleIndex = uint64(1);                                                                                           % [RWStart#1 RWStart#2...]
     
- 
-   
-    
-    %Building animation matrices for start interval before first presentation
-    trial = 1;                                                                              % Defining start of block period as being part of trial 1
-    if blockMatrix(block) == 1 %Pure Visual Block                                           % Checking block type and filling animation matrices with initial isi before first stimuli presentation
-        [visualMatrix, frameToTrialMatrix]= AnimateVisualNoise2(visualMatrix, noiseTextures, frameToTrialMatrix, trial, startDuration, ifi); % Adding visual noise to visualMatrix
-        audioMatrix = AnimateAuditorySilence(audioMatrix, startDuration, sampleFreq);       % Adding silence to audioMatrix
-    elseif blockMatrix(block) == 2 %Pure Auditory Block
-        [visualMatrix, frameToTrialMatrix]= AnimateFixationCross(visualMatrix, crossTexture, frameToTrialMatrix, trial, startDuration, ifi);  % Adding fixation cross
-        [audioMatrix auditorySampleIndex] = AnimateAuditoryPinkNoise(audioMatrix, pinkNoiseMatrix, startDuration, sampleFreq, auditorySampleIndex);         % Adding Auditory Noise
-
-
-    end
-                                   
-    
     %Building animation matrices for all trials per block
     for trial = 1:trialsPerBlock
+        visualTrialMatrix = [];
+        audioTrialMatrix = [];
         coherence = trialCell{2, block}(1, trial);                                           % Loading parameters from trialMatrix for code readability
         if blockMatrix(block) == 1
             orientation = trialCell{2, block}(2, trial);
             phase = trialCell{2, block}(3, trial);
         end
-        %Building stimulus
+        %Building animation matrices for start interval before first presentation
+        % Defining start of block period as being part of trial 1
+        if trial == 1
+            if blockMatrix(block) == 1 %Pure Visual Block                                           % Checking block type and filling animation matrices with initial isi before first stimuli presentation
+                [visualTrialMatrix, frameToTrialMatrix]= AnimateVisualNoise(visualTrialMatrix, noiseTextures, frameToTrialMatrix, trial, startDuration, ifi); % Adding visual noise to visualTrialMatrix
+                audioTrialMatrix = AnimateAuditorySilence(audioTrialMatrix, startDurationAuditory, sampleFreq);       % Adding silence to audioTrialMatrix
+            elseif blockMatrix(block) == 2 %Pure Auditory Block
+                [visualTrialMatrix, frameToTrialMatrix]= AnimateFixationCross(visualTrialMatrix, crossTexture, frameToTrialMatrix, trial, startDuration, ifi);  % Adding fixation cross
+                [audioTrialMatrix, auditorySampleIndex] = AnimateAuditoryPinkNoise(audioTrialMatrix, pinkNoiseMatrix, startDurationAuditory, sampleFreq, auditorySampleIndex);         % Adding Auditory Noise
+            end
+        end
+
+         %Stimulus
         if blockMatrix(block) == 1
-            [visualMatrix frameToTrialMatrix] = AnimateNoisyGabor2(visualMatrix, gaborMatrix, noiseMatrix, frameToTrialMatrix, trial, coherence, stimulusDuration, ifi, window); % Adding noisy gabor stimulus to visualMatrix
-            audioMatrix = AnimateAuditorySilence(audioMatrix, stimulusDuration, sampleFreq);                                                     % Adding silence to audioMatrix
+            [visualTrialMatrix, frameToTrialMatrix] = AnimateNoisyGabor(visualTrialMatrix, gaborMatrix, noiseMatrix, frameToTrialMatrix, trial, coherence, stimulusDuration, ifi, window); % Adding noisy gabor stimulus to visualTrialMatrix
+            audioTrialMatrix = AnimateAuditorySilence(audioTrialMatrix, stimulusDurationAuditory, sampleFreq);                                                     % Adding silence to audioTrialMatrix
 %             figure
 %             imshow(stimulusMatrix)
         elseif blockMatrix(block) == 2
-            [visualMatrix frameToTrialMatrix]= AnimateFixationCross(visualMatrix, crossTexture, frameToTrialMatrix, trial, stimulusDuration, ifi);                     % Adding fixation cross to visualMatrix
-            [audioMatrix auditorySampleIndex]= AnimatePinkNoisyRipple(audioMatrix, pinkNoiseMatrix, frequency1, frequency2, coherence, stimulusDuration, sampleFreq, auditorySampleIndex);                     % Adding noisy ripple sound to audioMatrix
+            [visualTrialMatrix, frameToTrialMatrix]= AnimateFixationCross(visualTrialMatrix, crossTexture, frameToTrialMatrix, trial, stimulusDuration, ifi);                     % Adding fixation cross to visualTrialMatrix
+            [audioTrialMatrix, auditorySampleIndex]= AnimatePinkNoisyRipple(audioTrialMatrix, pinkNoiseMatrix, frequency1, frequency2, coherence, stimulusDurationAuditory, sampleFreq, auditorySampleIndex);                     % Adding noisy ripple sound to audioTrialMatrix
           
         end                                                                           
         
@@ -193,26 +196,31 @@ for block = 1:2%numberBlocks
             isiDuration1 = isiDurationPossible(1);
             isiDuration2 = isiDurationPossible(2);
             isiDuration = rand(1) * (isiDuration2 - isiDuration1) + isiDuration1;
+        else
+            isiDuration = isiDurationPossible;
         end
         trialCell{4, block}(trial) = isiDuration;
+        isiDurationAuditory = (fix(isiDuration/1000*refreshRate)) *  (1/refreshRate) * 1000;
         
         if blockMatrix(block) == 1
-            [visualMatrix frameToTrialMatrix] = AnimateVisualNoise2(visualMatrix, noiseTextures, frameToTrialMatrix, trial, isiDuration, ifi);  % Adding visual noise to visualMatrix. Retrieve Response window, the interval during which to tell the presentation function to get responses
-            audioMatrix = AnimateAuditorySilence(audioMatrix, isiDuration, sampleFreq);                                                         % Adding silence to audioMatrix                                        
+            [visualTrialMatrix, frameToTrialMatrix] = AnimateVisualNoise(visualTrialMatrix, noiseTextures, frameToTrialMatrix, trial, isiDuration, ifi);  % Adding visual noise to visualTrialMatrix. Retrieve Response window, the interval during which to tell the presentation function to get responses
+                                                                                    % Adding silence to audioTrialMatrix                                        
         elseif blockMatrix(block) == 2
-            [visualMatrix frameToTrialMatrix] = AnimateFixationCross(visualMatrix, crossTexture, frameToTrialMatrix, trial, isiDuration, ifi);   % Adding fixation cross to visualMatrix
-            [audioMatrix auditorySampleIndex]= AnimateAuditoryPinkNoise(audioMatrix, pinkNoiseMatrix, isiDuration, sampleFreq, auditorySampleIndex);                                                           % Adding Auditory Noise          
+            [visualTrialMatrix, frameToTrialMatrix] = AnimateFixationCross(visualTrialMatrix, crossTexture, frameToTrialMatrix, trial, isiDuration, ifi);   % Adding fixation cross to visualTrialMatrix
+            [audioTrialMatrix, auditorySampleIndex]= AnimateAuditoryPinkNoise(audioTrialMatrix, pinkNoiseMatrix, isiDurationAuditory, sampleFreq, auditorySampleIndex);                                                           % Adding Auditory Noise          
           
-        end                                                                                                                                                                                              
+        end
+        visualCell{trial} = visualTrialMatrix;
+        audioCell{trial} = audioTrialMatrix;
+        %audioCell{trial} = PsychPortAudio('CreateBuffer', pahandle, audioTrialMatrix); Buffer
     end 
     DrawFormattedText(window, 'Ready to Start Next Block. Press any key to continue...', 'center', 'center', white);
     Screen('Flip', window);
     KbStrokeWait;
-    %Open audio port
-    pahandle = PsychPortAudio('Open', [], 1, 1, sampleFreq, nrchannels, [], [], [], []);
     %Playing back the animation that was just generated
- 
-    tempResponseMatrix = PlayAVAnimation2(visualMatrix, audioMatrix, tempResponseMatrix, frameToTrialMatrix, pahandle, volume, window, ifi, rectCenter);
+    %PsychPortAudio('UseSchedule', pahandle, 1);
+    pahandle = PsychPortAudio('Open', [], 1, 1, sampleFreq, nrchannels, [], [], [], []);
+    tempResponseMatrix = PlayAVAnimation(visualCell, audioCell, tempResponseMatrix, frameToTrialMatrix, pahandle, volume, window, ifi, rectCenter);
     responseMatrix(block,:) = tempResponseMatrix;
     PsychPortAudio('Close', pahandle);
     

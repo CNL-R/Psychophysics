@@ -14,8 +14,8 @@ function [AudioMatrix, Duration, auditorySampleIndex] = AnimateAuditoryPinkNoise
     %Converting Duration from ms to seconds (because Hz is used as units in frequency and sample rate)
     Duration = Duration / 1000;
     
-    samples = round(SampleRate * Duration);
-    y = PinkNoiseMatrix(:, auditorySampleIndex: auditorySampleIndex + samples - 1); %
+    samples = fix(SampleRate * Duration);
+    y = PinkNoiseMatrix(:, auditorySampleIndex: auditorySampleIndex + samples - 1);   %
 %     maximum = max(y);                                                               %
 %     minimum = min(y);                                                               %
 %     y = y/max([abs(minimum) abs(maximum)]);

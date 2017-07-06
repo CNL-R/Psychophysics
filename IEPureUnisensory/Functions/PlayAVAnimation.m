@@ -1,7 +1,7 @@
-function [responseMatrix] = PlayAVAnimation2(AnimationTextures, AudioMatrix, responseMatrix, frameToTrialMatrix, pahandle, volume, window, ifi, rectCenter)
-%Plays an AV animation given by an animation texture and audiomatrix. The 
+function [responseMatrix] = PlayAVAnimation(VisualCell, AudioCell, responseMatrix, frameToTrialMatrix, pahandle, volume, window, ifi, rectCenter)
+%Plays an AV animation given by an animation texture and AudioCell. The 
 %   
-%   AnimationTextures - matrix of all textures being played. Can be generated from GenerateAnimatedNoiseGabor
+%   VisualCell - matrix of all textures being played. Can be generated from GenerateAnimatedNoiseGabor
 %   window: window ptr of the window to present the stimuli. [window, windowRect] = PsychImaging('OpenWindow', screenNumber, 0.5, [], 32, 2,...
 %       [], [],  kPsychNeed32BPCFloat);
 %   vbl: if this is the first presentation of the stimulus, it creates one; use 0 in this case. This function returns vbl for subsequent presentation functions.
@@ -33,39 +33,42 @@ nrchannels = 2;
 %setting number of frames to wait before redrawing
 waitframes = 1;
 
-timeFrames = round(numel(AnimationTextures));
-
-PsychPortAudio('Volume', pahandle, volume);
-PsychPortAudio('FillBuffer', pahandle, AudioMatrix);
 
 trial = 1; %trial counter
 
-%play sound
-PsychPortAudio('Start', pahandle, repetitions, startCue, waitForDeviceStart);
+PsychPortAudio('Volume', pahandle, volume);
+PsychPortAudio('FillBuffer', pahandle, [AudioCell{trial}(:,:)  AudioCell{trial + 1}(:,:)]);
+PsychPortAudio('Start', pahandle, 0, startCue, waitForDeviceStart);
 
-%Play stimulus
-Screen('DrawTexture', window, AnimationTextures(1), [], rectCenter, [], [], [], []);
-vbl = Screen('Flip', window);
-
-%Play stimulus for the rest of the presentation interval (-1
-%frame because we played the fixation point at frame 1)
-for frame = 1:timeFrames - 1
-    %Draw fixation point
-    Screen('DrawTexture', window, AnimationTextures(frame + 1), [], rectCenter, [], [], [], []);
+for trial = 1:size(VisualCell, 2)
+    trial
+    timeFrames = round(numel(VisualCell{trial}(:)));
     
-    %Flip to screen
-    vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
-    
-    
-    %detecting response
-    KeyIsDown = KbCheck;
-    if KeyIsDown == 1
-        responseMatrix(1, trial) = 1;
+    if trial > 1 && trial < size(VisualCell, 2)
+        [underflow, nextSampleStartIndex, nextSampleETASecs] = PsychPortAudio('FillBuffer', pahandle, AudioCell{trial + 1}(:,:), 1);
     end
     
-    trial = frameToTrialMatrix(frame);
+    Screen('DrawTexture', window, VisualCell{trial}(1), [], rectCenter, [], [], [], []);
+    vbl = Screen('Flip', window);
+    
+    for frame = 1:timeFrames - 1
+        %Draw fixation point
+        Screen('DrawTexture', window, VisualCell{trial}(frame + 1), [], rectCenter, [], [], [], []);
+        
+        %Flip to screen
+        vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);
+        
+        
+        %detecting response
+        KeyIsDown = KbCheck;
+        if KeyIsDown == 1
+            responseMatrix(1, trial) = 1;
+        end
+        
+        
+    end
 end
-
+PsychPortAudio('Stop', pahandle);
 end
 
 

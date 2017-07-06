@@ -18,9 +18,9 @@ function [AudioMatrix auditorySampleIndex] = AnimatePinkNoisyRipple(AudioMatrix,
     
     leftTaper = linspace(0,1,SampleRate*taperDuration);
     rightTaper = linspace(1,0,SampleRate*taperDuration);
-    taper(1:SampleRate*Duration) = 1;
-    taper(1:SampleRate*taperDuration) = leftTaper;
-    taper((SampleRate*Duration - SampleRate*taperDuration) + 1: SampleRate*Duration) = rightTaper;
+    taper(1:round(SampleRate*Duration)) = 1;
+    taper(1:round(SampleRate*taperDuration)) = leftTaper;
+    taper((round(SampleRate*Duration) - round(SampleRate*taperDuration)) + 1: round(SampleRate*Duration)) = rightTaper;
 
     %Converting Duration from ms to seconds (because Hz is used as units in frequency and sample rate)
     
@@ -34,7 +34,7 @@ function [AudioMatrix auditorySampleIndex] = AnimatePinkNoisyRipple(AudioMatrix,
     
     lastt = size(t,2);
     
-    samples = round(SampleRate*Duration);
+    samples = fix(SampleRate*Duration);
     pinknoiseY = PinkNoiseMatrix(:, auditorySampleIndex: auditorySampleIndex + samples - 1);
 %     maximum = max(pinknoiseY);                                                               %
 %     minimum = min(pinknoiseY);   

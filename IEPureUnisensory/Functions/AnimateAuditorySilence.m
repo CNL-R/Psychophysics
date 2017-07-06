@@ -1,4 +1,4 @@
-function [AudioMatrix, Duration] = AnimateAuditoryNoise(AudioMatrix, Duration, SampleRate)
+function [AudioMatrix, Duration] = AnimateAuditorySilence(AudioMatrix, Duration, SampleRate)
 %Generates auditory noise and converts to audio WAV file. 
 %   Frquency in Hz
 %   Duration in ms
@@ -15,9 +15,7 @@ function [AudioMatrix, Duration] = AnimateAuditoryNoise(AudioMatrix, Duration, S
     Duration = Duration / 1000;
     
   
-    y = 2*rand(round(SampleRate * Duration), 1) - 1;
-    y= y';
-    y(2,:) =  y(1,:);
+    y = zeros(2, fix(SampleRate * Duration));
     AudioMatrix = [AudioMatrix y];
    
 end
