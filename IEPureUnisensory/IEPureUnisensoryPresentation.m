@@ -18,7 +18,7 @@ screenNumber = max(Screen('Screens'));                                      % Se
 white = WhiteIndex(screenNumber);                                           % Define black, white and grey
 black = BlackIndex(screenNumber);
 grey = white / 2;
-PsychDebugWindowConfiguration(1, 1);
+%PsychDebugWindowConfiguration(1, 1); DEBUG
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, grey, [], 32, 2, [], [],  kPsychNeed32BPCFloat); % Open the screen
 ifi = Screen('GetFlipInterval', window);                                    %Query the monitor flip interval
 refreshRate = 1/ifi;
@@ -43,9 +43,9 @@ waitForDeviceStart = 1;
 numberConditions = 2;
 blocksPerCondition = 4;
 numberBlocks = numberConditions * blocksPerCondition;
-blockMatrix = repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
+blockMatrix = repmat(1:numberConditions, 1, blocksPerCondition);           % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
 shuffler = randperm(numberBlocks);                                         % Declaring shuffler matrix to shuffle blockMatrix
-%blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
+blockMatrix = blockMatrix(shuffler); %DEBUG                                % Using shuffler shuffle blockMatrix
 
 % Within Block Params & Logic                                              % Enter your within block experiment specific parameters here
 gradationsPerCondition = 15;                                               % 
@@ -211,7 +211,6 @@ for block = 1:2%numberBlocks
         end
         visualCell{trial} = visualTrialMatrix;
         audioCell{trial} = audioTrialMatrix;
-        %audioCell{trial} = PsychPortAudio('CreateBuffer', pahandle, audioTrialMatrix); Buffer
     end 
     DrawFormattedText(window, 'Ready to Start Next Block. Press any key to continue...', 'center', 'center', white);
     Screen('Flip', window);
