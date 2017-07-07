@@ -18,7 +18,7 @@ screenNumber = max(Screen('Screens'));                                      % Se
 white = WhiteIndex(screenNumber);                                           % Define black, white and grey
 black = BlackIndex(screenNumber);
 grey = white / 2;
-%PsychDebugWindowConfiguration(1, 1); DEBUG
+%PsychDebugWindowConfiguration(1, 1); %DEBUG
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, grey, [], 32, 2, [], [],  kPsychNeed32BPCFloat); % Open the screen
 ifi = Screen('GetFlipInterval', window);                                    %Query the monitor flip interval
 refreshRate = 1/ifi;
@@ -41,15 +41,15 @@ waitForDeviceStart = 1;
 % Block Params & Logic
 %---------------------
 numberConditions = 2;
-blocksPerCondition = 4;
+blocksPerCondition = 1;
 numberBlocks = numberConditions * blocksPerCondition;
-blockMatrix = repmat(1:numberConditions, 1, blocksPerCondition);           % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
+blockMatrix = [2 1]%repmat(1:numberConditions, 1, blocksPerCondition);           % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
 shuffler = randperm(numberBlocks);                                         % Declaring shuffler matrix to shuffle blockMatrix
-blockMatrix = blockMatrix(shuffler); %DEBUG                                % Using shuffler shuffle blockMatrix
+%blockMatrix = blockMatrix(shuffler); %DEBUG                                % Using shuffler shuffle blockMatrix
 
 % Within Block Params & Logic                                              % Enter your within block experiment specific parameters here
 gradationsPerCondition = 15;                                               % 
-setsPerBlock = 15;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
+setsPerBlock = 15                                 ;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
 stimuliPerBlock = gradationsPerCondition * setsPerBlock;
 catchTrialsPerBlock = 15;                                                  % How many catch trials do you want in a block?
 numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
@@ -110,15 +110,15 @@ gaborMatrix = CreateGabor2(gaborSize, sigma, lambda, orientation, phase, amplitu
 
 %Visual Stimuli Parameters
 visualParameters = zeros(3, gradationsPerCondition);          % Matrix to keep track of parameters of each generated visual stimuli.
-visualParameters(1,:) = [0 .05 .055 .06 .065 .07 .075 .08 .085 .09 .095 .01 .15 .2 .3];  % Assigning coherences
+visualParameters(1,:) = [0 .05 .055 .06 .065 .07 .075 .08 .085 .09 .095 .1 .15 .2 .3];  % Assigning coherences
 visualParameters(2,:) = orientation;                           % Assigning orientations. 0->2pi
 visualParameters(3,:) = phase;                                 % Assigning phases. 0->2pi
 
-%Auditory Stimuli Parameters
+%Auditory Stimuli Parameters                                   
 frequency1 = 1000;                                             %To create a ripple, two sine waves are multiplied with each other 
 frequency2 = 200;
 audioParameters = zeros(1, gradationsPerCondition);
-audioParameters(1,:) = [0 .05 .055 .06 .065 .07 .075 .08 .085 .09 .095 .01 .15 .2 .3];
+audioParameters(1,:) = [0 .05 .055 .06 .065 .07 .075 .08 .085 .09 .095 .1 .15 .2 .3];
 
 %Centering texture in center of window
 xPos = xCenter;
@@ -145,7 +145,7 @@ rectCenter = CenterRectOnPointd(baseRect, xPos, yPos);
      end
  end
 
-for block = 1:2%numberBlocks
+for block = 1:numberBlocks
     ['block ' int2str(block)]
     %Generating Animation Matrices for this block
     visualCell = cell(1,trialsPerBlock);
@@ -253,7 +253,7 @@ for condition = 1:numberConditions
         for block = 1:numberBlocks
             for trial = 1:trialsPerBlock
                 if (dataCell{1, block}(1) == condition) && (dataCell{2, block}(1, trial) == trialTypes(trialType))
-                    numberOccurrences(condition, trialType) = numberOccurrences(condition, trialType) + 1
+                    numberOccurrences(condition, trialType) = numberOccurrences(condition, trialType) + 1;
                     if dataCell{3, block}(trial) == 1
                         yAxis(condition, trialType) = yAxis(condition, trialType) + 1;
                     end                   

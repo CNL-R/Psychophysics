@@ -43,15 +43,15 @@ waitForDeviceStart = 1;
 numberConditions = 2;
 blocksPerCondition = 1;
 numberBlocks = numberConditions * blocksPerCondition;
-blockMatrix = [1 2];%repmat(1:numberConditions, 1, blocksPerCondition);    % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
+blockMatrix = [2 1];%repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
 shuffler = randperm(numberBlocks);                                         % Declaring shuffler matrix to shuffle blockMatrix
 %blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
 
 % Within Block Params & Logic                                              % Enter your within block experiment specific parameters here
 gradationsPerCondition = 15;                                               % 
-setsPerBlock = 15;                                                       % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
+setsPerBlock = 15;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
 stimuliPerBlock = gradationsPerCondition * setsPerBlock;
-catchTrialsPerBlock = 0;                                                   % How many catch trials do you want in a block?
+catchTrialsPerBlock = 15;                                                  % How many catch trials do you want in a block?
 numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
 
 %-------------------
@@ -118,7 +118,7 @@ visualParameters(3,:) = phase;                                 % Assigning phase
 frequency1 = 1000;                                             %To create a ripple, two sine waves are multiplied with each other 
 frequency2 = 200;
 audioParameters = zeros(1, gradationsPerCondition);
-audioParameters(1,:) = [0 .05 .055 .06 .065 .07 .075 .08 .085 .09 .095 .01 .15 .2 .3];
+audioParameters(1,:) = [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1];
 
 %Centering texture in center of window
 xPos = xCenter;
@@ -222,7 +222,7 @@ for block = 1:2%numberBlocks
     tempResponseMatrix = PlayAVAnimation(visualCell, audioCell, tempResponseMatrix, frameToTrialMatrix, pahandle, volume, window, ifi, rectCenter);
     responseMatrix(block,:) = tempResponseMatrix;
     PsychPortAudio('Close', pahandle);
-    
+    Screen('Close', visualC)
     DrawFormattedText(window, 'End of Block! Please Wait...', 'center', 'center', white);
     Screen('Flip', window);
 end 

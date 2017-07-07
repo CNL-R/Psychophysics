@@ -1,4 +1,4 @@
-function [AudioMatrix, Duration, auditorySampleIndex] = AnimateAuditoryPinkNoise(AudioMatrix, PinkNoiseMatrix, Duration, SampleRate, auditorySampleIndex)
+function [AudioMatrix, auditorySampleIndex] = AnimateAuditoryPinkNoise(AudioMatrix, PinkNoiseMatrix, Duration, SampleRate, auditorySampleIndex)
 %Generates auditory noise and converts to audio WAV file. 
 %   Frquency in Hz
 %   Duration in ms
@@ -19,7 +19,7 @@ function [AudioMatrix, Duration, auditorySampleIndex] = AnimateAuditoryPinkNoise
 %     maximum = max(y);                                                               %
 %     minimum = min(y);                                                               %
 %     y = y/max([abs(minimum) abs(maximum)]);
-    auditorySampleIndex = round(auditorySampleIndex + samples - 1);
+    auditorySampleIndex = round(auditorySampleIndex + samples)
     AudioMatrix = [AudioMatrix y];
     
 end

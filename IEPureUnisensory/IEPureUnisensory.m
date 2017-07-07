@@ -41,15 +41,15 @@ waitForDeviceStart = 1;
 % Block Params & Logic
 %---------------------
 numberConditions = 2;
-blocksPerCondition = 4;
+blocksPerCondition = 1;
 numberBlocks = numberConditions * blocksPerCondition;
-blockMatrix = repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
+blockMatrix = [2 1];%repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
 shuffler = randperm(numberBlocks);                                         % Declaring shuffler matrix to shuffle blockMatrix
 %blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
 
 % Within Block Params & Logic                                              % Enter your within block experiment specific parameters here
 gradationsPerCondition = 15;                                               % 
-setsPerBlock = 15;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
+setsPerBlock = 1;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
 stimuliPerBlock = gradationsPerCondition * setsPerBlock;
 catchTrialsPerBlock = 15;                                                  % How many catch trials do you want in a block?
 numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
@@ -64,7 +64,7 @@ isiDurationPossible = [1000 3000];                                     % Inter-s
 stimulusDuration = 60;                                         % Duration stimulus is on screen in ms
 stimulusDurationAuditory = (fix(stimulusDuration/1000*refreshRate)) *  (1/refreshRate) * 1000;
 
-blockMaxDuration = startDuration + numberTrialsPerBlock*(isiDurationPossible(2)+stimulusDuration);
+blockMaxDuration = startDuration + numberTrialsPerBlock*(max(isiDurationPossible)+stimulusDuration);
 
 sizeX = 500;                                                   % Dimmensions of the square noise patch
 sizeY = 500;  
@@ -110,7 +110,7 @@ gaborMatrix = CreateGabor2(gaborSize, sigma, lambda, orientation, phase, amplitu
 
 %Visual Stimuli Parameters
 visualParameters = zeros(3, gradationsPerCondition);          % Matrix to keep track of parameters of each generated visual stimuli.
-visualParameters(1,:) = [0 .05 .055 .06 .065 .07 .075 .08 .085 .09 .095 .01 .15 .2 .3];  % Assigning coherences
+visualParameters(1,:) = [0 .05 .055 .06 .065 .07 .075 .08 .085 .09 .095 .1 .15 .2 .3];  % Assigning coherences
 visualParameters(2,:) = orientation;                           % Assigning orientations. 0->2pi
 visualParameters(3,:) = phase;                                 % Assigning phases. 0->2pi
 
@@ -118,7 +118,7 @@ visualParameters(3,:) = phase;                                 % Assigning phase
 frequency1 = 1000;                                             %To create a ripple, two sine waves are multiplied with each other 
 frequency2 = 200;
 audioParameters = zeros(1, gradationsPerCondition);
-audioParameters(1,:) = [0 .05 .055 .06 .065 .07 .075 .08 .085 .09 .095 .01 .15 .2 .3];
+audioParameters(1,:) = [0 .05 .055 .06 .065 .07 .075 .08 .085 .09 .095 .1 .15 .2 .3];
 
 %Centering texture in center of window
 xPos = xCenter;
@@ -211,7 +211,6 @@ for block = 1:2%numberBlocks
         end
         visualCell{trial} = visualTrialMatrix;
         audioCell{trial} = audioTrialMatrix;
-        %audioCell{trial} = PsychPortAudio('CreateBuffer', pahandle, audioTrialMatrix); Buffer
     end 
     DrawFormattedText(window, 'Ready to Start Next Block. Press any key to continue...', 'center', 'center', white);
     Screen('Flip', window);
@@ -222,7 +221,6 @@ for block = 1:2%numberBlocks
     tempResponseMatrix = PlayAVAnimation(visualCell, audioCell, tempResponseMatrix, frameToTrialMatrix, pahandle, volume, window, ifi, rectCenter);
     responseMatrix(block,:) = tempResponseMatrix;
     PsychPortAudio('Close', pahandle);
-    
     DrawFormattedText(window, 'End of Block! Please Wait...', 'center', 'center', white);
     Screen('Flip', window);
 end 
