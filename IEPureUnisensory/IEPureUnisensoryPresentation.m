@@ -2,6 +2,7 @@
 % Clear the workspace and the screen
 sca;
 close all;
+clear all;
 clearvars;
 
 %------------------------
@@ -18,7 +19,6 @@ screenNumber = max(Screen('Screens'));                                      % Se
 white = WhiteIndex(screenNumber);                                           % Define black, white and grey
 black = BlackIndex(screenNumber);
 grey = white / 2;
-%PsychDebugWindowConfiguration(1, 1); DEBUG
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, grey, [], 32, 2, [], [],  kPsychNeed32BPCFloat); % Open the screen
 ifi = Screen('GetFlipInterval', window);                                    %Query the monitor flip interval
 refreshRate = 1/ifi;
