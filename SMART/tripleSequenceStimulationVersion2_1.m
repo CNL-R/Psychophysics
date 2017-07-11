@@ -23,7 +23,7 @@ for i = 1:3
 end
 
 %Generating tripleSequencesPool
-minimum = 50;
+minimum = 63;
 tripleSequencesPool = repmat(tripleSequences, minimum*3, 1);
 numberTripleSequences = size(tripleSequencesPool,1);
 shuffler = randperm(numberTripleSequences);
