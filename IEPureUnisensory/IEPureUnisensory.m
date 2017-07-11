@@ -43,7 +43,7 @@ waitForDeviceStart = 1;
 numberConditions = 2;
 blocksPerCondition = 1;
 numberBlocks = numberConditions * blocksPerCondition;
-blockMatrix = [2 1];%repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
+blockMatrix = repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
 shuffler = randperm(numberBlocks);                                         % Declaring shuffler matrix to shuffle blockMatrix
 %blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
 
@@ -51,7 +51,7 @@ shuffler = randperm(numberBlocks);                                         % Dec
 gradationsPerCondition = 15;                                               % 
 setsPerBlock = 1;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
 stimuliPerBlock = gradationsPerCondition * setsPerBlock;
-catchTrialsPerBlock = 15;                                                  % How many catch trials do you want in a block?
+catchTrialsPerBlock = 0;                                                  % How many catch trials do you want in a block?
 numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
 
 %-------------------
@@ -154,8 +154,10 @@ for block = 1:2%numberBlocks
     audioTrialMatrix = [];                                                                        % Initializing audioTrialMatrix, a 2xtrials array containing audio information for the entire block
     frameToTrialMatrix = [];                                                               % Initializing frameToTrialMatrix, a 2D array containing response windows for the entire block
     tempResponseMatrix = zeros(1, trialsPerBlock);
-    pinkNoiseMatrix = GenerateAuditoryPinkNoise(blockMaxDuration, sampleFreq);             % Generating all of the pink noise for this block
-    auditorySampleIndex = uint64(1);                                                                                           % [RWStart#1 RWStart#2...]
+    [pinkNoiseMatrix, sampleFreq] = audioread('PinkNoise.WAV');
+    pinkNoiseMatrix = pinkNoiseMatrix';
+    pinkNoiseMatrix(2,:) = pinkNoiseMatrix(1,:);
+    auditorySampleIndex = uint64(1);                                                                                            % [RWStart#1 RWStart#2...]
     
     %Building animation matrices for all trials per block
     for trial = 1:trialsPerBlock
