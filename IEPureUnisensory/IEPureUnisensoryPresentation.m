@@ -42,7 +42,7 @@ waitForDeviceStart = 1;
 % Block Params & Logic
 %---------------------
 numberConditions = 2;
-blocksPerCondition = 4;
+blocksPerCondition = 8;
 numberBlocks = numberConditions * blocksPerCondition;
 blockMatrix = repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
 shuffler = randperm(numberBlocks);                                         % Declaring shuffler matrix to shuffle blockMatrix
@@ -52,7 +52,7 @@ blockMatrix = blockMatrix(shuffler);                                      % Usin
 gradationsPerCondition = 15;                                               % 
 setsPerBlock = 5;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
 stimuliPerBlock = gradationsPerCondition * setsPerBlock;
-catchTrialsPerBlock = 5;                                                  % How many catch trials do you want in a block?
+catchTrialsPerBlock = 0;                                                  % How many catch trials do you want in a block?
 numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
 
 %-------------------
@@ -239,6 +239,12 @@ numberTrialTypes = size(visualParameters,2);                              % Numb
 %Calculating Psychometric Threshold
 yAxis = zeros(numberConditions, numberTrialTypes);
 numberOccurrences = zeros(numberConditions, numberTrialTypes);
+titles = ['Visual', 'Auditory'];
+
+figure;
+for condition = 1:numberConditions
+    plots(condition) = subplot(2,1,condition);
+end 
 for condition = 1:numberConditions
     %setting xAxis for plot
     if condition == 1
@@ -263,9 +269,12 @@ for condition = 1:numberConditions
             end
         end
     end
-    figure;
     yAxis(condition,:) = yAxis(condition,:) ./ numberOccurrences(condition,:);
-    plot(xAxis(condition,:), yAxis(condition,:));
+    
+  
+    
+    plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
+    title(plots(condition), titles(condition));
 end 
 %% ------------------
 % SAVING DATA
@@ -274,6 +283,6 @@ end
 
 filename = [participant '.mat']; %TIMING CODE: remove '_timing'
 
-save(fullfile(filepath, filename), 'xAxis','yAxis', 'dataCell', 'visualParameters', 'audioParameters', );
-    sca;
-    Screen('CloseAll')
+save(fullfile(filepath, filename), 'xAxis','yAxis', 'dataCell', 'visualParameters', 'audioParameters');
+sca;
+Screen('CloseAll')
