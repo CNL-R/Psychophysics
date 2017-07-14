@@ -232,7 +232,9 @@ for block = 1:numberBlocks
     dataCell{3, block} = responseMatrix(block,:);
 end
 
-
+%% ------------------
+% PLOTTING DATA
+%--------------------
 numberTrialTypes = size(visualParameters,2);                              % Number of trial types
 %Calculating Psychometric Threshold
 yAxis = zeros(numberConditions, numberTrialTypes);
@@ -251,9 +253,9 @@ for condition = 1:numberConditions
     %setting yAxis for plot
     for trialType = 1:numberTrialTypes
         for block = 1:numberBlocks
-            for trial = 1:trialsPerBlock
+            for trial = 1:size(dataCell{2,1}, 2)
                 if (dataCell{1, block}(1) == condition) && (dataCell{2, block}(1, trial) == trialTypes(trialType))
-                    numberOccurrences(condition, trialType) = numberOccurrences(condition, trialType) + 1
+                    numberOccurrences(condition, trialType) = numberOccurrences(condition, trialType) + 1;
                     if dataCell{3, block}(trial) == 1
                         yAxis(condition, trialType) = yAxis(condition, trialType) + 1;
                     end                   
@@ -272,6 +274,6 @@ end
 
 filename = [participant '.mat']; %TIMING CODE: remove '_timing'
 
-save(fullfile(filepath, filename), 'xAxis','yAxis', 'dataCell');
+save(fullfile(filepath, filename), 'xAxis','yAxis', 'dataCell', 'visualParameters', 'audioParameters', );
     sca;
     Screen('CloseAll')
