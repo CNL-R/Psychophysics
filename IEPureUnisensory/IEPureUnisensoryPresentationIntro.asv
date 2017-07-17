@@ -4,12 +4,6 @@
 close all;
 clearvars;
 
-%------------------------
-% Participant Information
-%------------------------
-participant = 'Allison';                                                    %name of the participant.
-filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
-
 %--------------------
 % Initial PTB Set-up
 %--------------------
@@ -42,15 +36,15 @@ waitForDeviceStart = 1;
 % Block Params & Logic
 %---------------------
 numberConditions = 2;
-blocksPerCondition = 8;
+blocksPerCondition = 1;
 numberBlocks = numberConditions * blocksPerCondition;
-blockMatrix = repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
-shuffler = randperm(numberBlocks);                                         % Declaring shuffler matrix to shuffle blockMatrix
-blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
+blockMatrix = [1 2]; %repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
+%shuffler = randperm(numberBlocks);                                         % Declaring shuffler matrix to shuffle blockMatrix
+%blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
 
 % Within Block Params & Logic                                              % Enter your within block experiment specific parameters here
 gradationsPerCondition = 15;                                               % 
-setsPerBlock = 5;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
+setsPerBlock = 2;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
 stimuliPerBlock = gradationsPerCondition * setsPerBlock;
 catchTrialsPerBlock = 0;                                                  % How many catch trials do you want in a block?
 numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
@@ -110,7 +104,7 @@ gaborMatrix = CreateGabor2(gaborSize, sigma, lambda, orientation, phase, amplitu
 
 %Visual Stimuli Parameters
 visualParameters = zeros(3, gradationsPerCondition);          % Matrix to keep track of parameters of each generated visual stimuli.
-visualParameters(1,:) = [.5 .4 .35 .3 .205 .2 .105 .1 .095 .09 .085 .08 .075 .07 0];  % Assigning coherences
+visualParameters(1,:) = [.5 .4 .35 .3 .205 .2 .095 .09 .085 .08 .075 .07 .065 .06 0];  % Assigning coherences
 visualParameters(2,:) = orientation;                           % Assigning orientations. 0->2pi
 visualParameters(3,:) = phase;                                 % Assigning phases. 0->2pi
 
@@ -118,7 +112,7 @@ visualParameters(3,:) = phase;                                 % Assigning phase
 frequency1 = 1000;                                             %To create a ripple, two sine waves are multiplied with each other 
 frequency2 = 200;
 audioParameters = zeros(1, gradationsPerCondition);
-audioParameters(1,:) = [.3 .25 .15 .1 .5 .045 .04 .035 .03 .025 .02 .015 .01 .005 0];
+audioParameters(1,:) = [.3 .2 .15 .1 .095 .09 .085 .08 .075 .07 .065 .06 .055 .05 0];
 
 %Centering texture in center of window
 xPos = xCenter;
@@ -135,13 +129,13 @@ rectCenter = CenterRectOnPointd(baseRect, xPos, yPos);
  trialCell = cell(4, numberBlocks);                                                               % Expands the single row matrix into a cell. One matrix for each block.
  responseMatrix = zeros(numberBlocks, trialsPerBlock);
  for block = 1:numberBlocks
-     shuffler = randperm(trialsPerBlock);                                                         % generates shuffle matrix to randomly permute trial history matrices
+     %shuffler = randperm(trialsPerBlock);                                                         % generates shuffle matrix to randomly permute trial history matrices
      if blockMatrix(block) == 1
          trialCell{1,block} = 1;
-         trialCell{2,block} = visualTrialMatrix(:,shuffler);
+         trialCell{2,block} = visualTrialMatrix(:,:);
      elseif blockMatrix(block) == 2
          trialCell{1,block} = 2;
-         trialCell{2, block} = audioTrialMatrix(:, shuffler);
+         trialCell{2, block} = audioTrialMatrix(:,:);
      end
  end
 
@@ -276,13 +270,6 @@ for condition = 1:numberConditions
     plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
     title(plots(condition), titles(condition));
 end 
-%% ------------------
-% SAVING DATA
-%--------------------
-%filesaving
 
-filename = [participant '.mat']; %TIMING CODE: remove '_timing'
-
-save(fullfile(filepath, filename), 'xAxis','yAxis', 'dataCell', 'visualParameters', 'audioParameters');
 sca;
 Screen('CloseAll')
