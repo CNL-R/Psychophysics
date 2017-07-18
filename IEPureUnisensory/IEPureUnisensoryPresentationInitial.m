@@ -239,7 +239,7 @@ numberTrialTypes = size(visualParameters,2);                              % Numb
 %Calculating Psychometric Threshold
 yAxis = zeros(numberConditions, numberTrialTypes);
 numberOccurrences = zeros(numberConditions, numberTrialTypes);
-titles = ['Visual', 'Auditory'];
+titles = {'Visual', 'Auditory'};
 
 figure;
 for condition = 1:numberConditions
@@ -274,7 +274,7 @@ for condition = 1:numberConditions
   
     
     plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
-    title(plots(condition), titles(condition));
+    title(plots(condition), strjoin(titles(condition)));
 end 
 %% ------------------
 % SAVING DATA

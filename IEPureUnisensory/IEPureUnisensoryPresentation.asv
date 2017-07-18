@@ -42,15 +42,15 @@ waitForDeviceStart = 1;
 % Block Params & Logic
 %---------------------
 numberConditions = 2;
-blocksPerCondition = 1;
+blocksPerCondition = 8;
 numberBlocks = numberConditions * blocksPerCondition;
-blockMatrix = [2 1];%repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
-%shuffler = randperm(numberBlocks);                                         % Declaring shuffler matrix to shuffle blockMatrix
-%blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
+blockMatrix = repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
+shuffler = randperm(numberBlocks);                                         % Declaring shuffler matrix to shuffle blockMatrix
+blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
 
 % Within Block Params & Logic                                              % Enter your within block experiment specific parameters here
-gradationsPerCondition = 21;                                               % 
-setsPerBlock = 2;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
+gradationsPerCondition = 15;                                               % 
+setsPerBlock = 5;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
 stimuliPerBlock = gradationsPerCondition * setsPerBlock;
 catchTrialsPerBlock = 0;                                                  % How many catch trials do you want in a block?
 numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
@@ -110,15 +110,15 @@ gaborMatrix = CreateGabor2(gaborSize, sigma, lambda, orientation, phase, amplitu
 
 %Visual Stimuli Parameters
 visualParameters = zeros(3, gradationsPerCondition);          % Matrix to keep track of parameters of each generated visual stimuli.
-visualParameters(1,:) = 0:.05:1;  % Assigning coherences
+visualParameters(1,:) = [.5 .4 .35 .3 .205 .2 .105 .1 .095 .09 .085 .08 .075 .07 0];  % Assigning coherences
 visualParameters(2,:) = orientation;                           % Assigning orientations. 0->2pi
 visualParameters(3,:) = phase;                                 % Assigning phases. 0->2pi
 
 %Auditory Stimuli Parameters
-frequency1 = 1000;                                             %To create a ripple, two sine waves are dot multiplied with each other 
+frequency1 = 1000;                                             %To create a ripple, two sine waves are multiplied with each other 
 frequency2 = 200;
 audioParameters = zeros(1, gradationsPerCondition);
-audioParameters(1,:) = 0:.05:1;
+audioParameters(1,:) = [.3 .25 .15 .1 .5 .045 .04 .035 .03 .025 .02 .015 .01 .005 0];
 
 %Centering texture in center of window
 xPos = xCenter;
@@ -213,7 +213,7 @@ for block = 1:numberBlocks
         end
         visualCell{trial} = visualTrialMatrix;
         audioCell{trial} = audioTrialMatrix;
-    end 
+    end
     DrawFormattedText(window, 'Ready to Start Next Block. Press any key to continue...', 'center', 'center', white);
     Screen('Flip', window);
     KbStrokeWait;
@@ -224,7 +224,54 @@ for block = 1:numberBlocks
     PsychPortAudio('Close', pahandle);
     DrawFormattedText(window, 'End of Block! Please Wait...', 'center', 'center', white);
     Screen('Flip', window);
-end 
+    
+    tempDataCell = trialCell;
+    for i = 1:numberBlocks
+        tempDataCell{3, i} = responseMatrix(i,:);
+    end
+    numberTrialTypes = size(visualParameters,2);                              % Number of trial types
+    %Calculating Psychometric Threshold
+    yAxis = zeros(numberConditions, numberTrialTypes);
+    numberOccurrences = zeros(numberConditions, numberTrialTypes);
+    titles = ['Visual', 'Auditory'];
+    
+    figure;
+    for condition = 1:numberConditions
+        plots(condition) = subplot(2,1,condition);
+    end
+    for condition = 1:numberConditions
+        %setting xAxis for plot
+        if condition == 1
+            xAxis(condition,:) = visualParameters(1,:);
+            trialTypes = visualParameters(1,:);
+        elseif condition == 2
+            xAxis(condition,:) = audioParameters;
+            trialTypes = audioParameters;
+        end
+        
+        
+        %setting yAxis for plot
+        for trialType = 1:numberTrialTypes
+            for i = 1:numberBlocks
+                for trial = 1:size(dataCell{2,1}, 2)
+                    if (dataCell{1, i}(1) == condition) && (dataCell{2, i}(1, trial) == trialTypes(trialType))
+                        numberOccurrences(condition, trialType) = numberOccurrences(condition, trialType) + 1;
+                        if dataCell{3, i}(trial) == 1
+                            yAxis(condition, trialType) = yAxis(condition, trialType) + 1;
+                        end
+                    end
+                end
+            end
+        end
+        yAxis(condition,:) = yAxis(condition,:) ./ numberOccurrences(condition,:);
+        
+        
+        
+        plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
+        title(plots(condition), titles(condition));
+    end
+    
+end
 
 %Creating dataCell - cell that contains all information about stimuli and responses. Row one - Blocl Type. row two - Stimuli Info. Row three - respones.
 dataCell = trialCell;

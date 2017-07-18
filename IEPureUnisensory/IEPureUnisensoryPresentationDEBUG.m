@@ -14,11 +14,11 @@ filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
 % Initial PTB Set-up
 %--------------------
 PsychDefaultSetup(2);                                                       % Setup PTB with some default values
-screenNumber = 1%max(Screen('Screens'));                                      % Set the screen number to the external secondary monitor if there is one connected
+screenNumber = max(Screen('Screens'));                                      % Set the screen number to the external secondary monitor if there is one connected
 white = WhiteIndex(screenNumber);                                           % Define black, white and grey
 black = BlackIndex(screenNumber);
 grey = white / 2;
-%PsychDebugWindowConfiguration(1, 1);
+PsychDebugWindowConfiguration(1, 1);
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, grey, [], 32, 2, [], [],  kPsychNeed32BPCFloat); % Open the screen
 %Screen('ColorRange', window, 1);
 ifi = Screen('GetFlipInterval', window);                                    %Query the monitor flip interval
@@ -50,7 +50,7 @@ blockMatrix = blockMatrix(shuffler);                                      % Usin
 
 % Within Block Params & Logic                                              % Enter your within block experiment specific parameters here
 gradationsPerCondition = 15;                                               % 
-setsPerBlock = 5;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
+setsPerBlock = 1;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
 stimuliPerBlock = gradationsPerCondition * setsPerBlock;
 catchTrialsPerBlock = 0;                                                  % How many catch trials do you want in a block?
 numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
@@ -118,7 +118,7 @@ visualParameters(3,:) = phase;                                 % Assigning phase
 frequency1 = 1000;                                             %To create a ripple, two sine waves are multiplied with each other 
 frequency2 = 200;
 audioParameters = zeros(1, gradationsPerCondition);
-audioParameters(1,:) = [.3 .25 .15 .1 .5 .045 .04 .035 .03 .025 .02 .015 .01 .005 0];
+audioParameters(1,:) = [.3 .25 .15 .1 .05 .045 .04 .035 .03 .025 .02 .015 .01 .005 0];
 
 %Centering texture in center of window
 xPos = xCenter;
@@ -225,9 +225,9 @@ for block = 1:numberBlocks
     DrawFormattedText(window, 'End of Block! Please Wait...', 'center', 'center', white);
     Screen('Flip', window);
     
-    tempDataCell = trialCell;
+    dataCell = trialCell;
     for i = 1:numberBlocks
-        tempDataCell{3, i} = responseMatrix(i,:);
+        dataCell{3, i} = responseMatrix(i,:);
     end
     numberTrialTypes = size(visualParameters,2);                              % Number of trial types
     %Calculating Psychometric Threshold
