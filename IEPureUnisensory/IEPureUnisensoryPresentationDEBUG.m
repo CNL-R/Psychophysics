@@ -8,8 +8,8 @@ clearvars;
 % Participant Information
 %------------------------
 participant = 'Allison';                                                    %name of the participant.
-filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
-
+filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA'; 
+         
 %--------------------
 % Initial PTB Set-up
 %--------------------
@@ -269,6 +269,7 @@ for block = 1:numberBlocks
         
         plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
         title(plots(condition), titles(condition));
+        drawnow;
     end
     
 end
