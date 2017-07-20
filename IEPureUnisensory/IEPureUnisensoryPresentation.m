@@ -12,10 +12,10 @@ participant = 'Allison';                                                    %nam
 filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
 
 Vmin = 0.05;
-Vmax = .1;
+Vmax = .15;
 
 Amin = 0.05;
-Amax = 0.1;
+Amax = 0.1         ;
 
 %--------------------
 % Initial PTB Set-up
