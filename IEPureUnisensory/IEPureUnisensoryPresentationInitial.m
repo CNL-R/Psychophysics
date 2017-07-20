@@ -224,7 +224,54 @@ for block = 1:numberBlocks
     PsychPortAudio('Close', pahandle);
     DrawFormattedText(window, 'End of Block! Please Wait...', 'center', 'center', white);
     Screen('Flip', window);
-end 
+    
+    dataCell = trialCell;
+    for i = 1:numberBlocks
+        dataCell{3, i} = responseMatrix(i,:);
+    end
+    numberTrialTypes = size(visualParameters,2);                              % Number of trial types
+    %Calculating Psychometric Threshold
+    yAxis = zeros(numberConditions, numberTrialTypes);
+    numberOccurrences = zeros(numberConditions, numberTrialTypes);
+    titles = ['Visual', 'Auditory'];
+    
+    %figure;
+    for condition = 1:numberConditions
+        plots(condition) = subplot(2,1,condition);
+    end
+    for condition = 1:numberConditions
+        %setting xAxis for plot
+        if condition == 1
+            xAxis(condition,:) = visualParameters(1,:);
+            trialTypes = visualParameters(1,:);
+        elseif condition == 2
+            xAxis(condition,:) = audioParameters;
+            trialTypes = audioParameters;
+        end
+        
+        
+        %setting yAxis for plot
+        for trialType = 1:numberTrialTypes
+            for i = 1:numberBlocks
+                for trial = 1:size(dataCell{2,1}, 2)
+                    if (dataCell{1, i}(1) == condition) && (dataCell{2, i}(1, trial) == trialTypes(trialType))
+                        numberOccurrences(condition, trialType) = numberOccurrences(condition, trialType) + 1;
+                        if dataCell{3, i}(trial) == 1
+                            yAxis(condition, trialType) = yAxis(condition, trialType) + 1;
+                        end
+                    end
+                end
+            end
+        end
+        yAxis(condition,:) = yAxis(condition,:) ./ numberOccurrences(condition,:);
+        
+        
+        
+        plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
+        title(plots(condition), titles(condition));
+        drawnow;
+    end
+end
 
 %Creating dataCell - cell that contains all information about stimuli and responses. Row one - Blocl Type. row two - Stimuli Info. Row three - respones.
 dataCell = trialCell;
@@ -275,6 +322,7 @@ for condition = 1:numberConditions
     
     plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
     title(plots(condition), strjoin(titles(condition)));
+    
 end 
 %% ------------------
 % SAVING DATA

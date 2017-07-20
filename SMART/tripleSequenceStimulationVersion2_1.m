@@ -87,6 +87,12 @@ blocks = round(size(trialMatrix,2)/trialsPerBlock);
 block = 1;
 %trialMatrix = trialMatrix';
 for block = 1:blocks
-    dlmwrite(strcat(Outdir,'\block_',int2str(block),'.txt'), trialMatrix( (block-1)*50 + 1:((block-1)*50 + 50) ),'delimiter', ' ');
-end 
+    fileID = fopen([Outdir '\block' num2str(block) '.txt'],'w');
+    for j = 1:trialsPerBlock
+        fprintf(fileID,'%d\r\n',trialMatrix((block-1)*50 + j));
+    end
+    fclose(fileID)
+end
+
+
 

@@ -1,6 +1,7 @@
 %Inverse Effectiven                                                                                                                                                                                                     ess Pure Block Trials Only. Constant Stimuli. Paints Psychometric curve for A and V. 
 % Clear the workspace and the screen
 %Latest Addition - Red Fixation Cross in both auditory and visual blocks
+%                - Generating stimuli params from GenerateParameters functions, which takes a min and max variable derived from the initial round. 
 close all;
 clearvars;
 
@@ -10,11 +11,17 @@ clearvars;
 participant = 'Allison';                                                    %name of the participant.
 filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
 
+Vmin = 0.05;
+Vmax = .1;
+
+Amin = 0.05;
+Amax = 0.1;
+
 %--------------------
 % Initial PTB Set-up
 %--------------------
 PsychDefaultSetup(2);                                                       % Setup PTB with some default values
-screenNumber = 1%max(Screen('Screens'));                                      % Set the screen number to the external secondary monitor if there is one connected
+screenNumber = 1;%max(Screen('Screens'));                                      % Set the screen number to the external secondary monitor if there is one connected
 white = WhiteIndex(screenNumber);                                           % Define black, white and grey
 black = BlackIndex(screenNumber);
 grey = white / 2;
@@ -49,7 +56,7 @@ shuffler = randperm(numberBlocks);                                         % Dec
 blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
 
 % Within Block Params & Logic                                              % Enter your within block experiment specific parameters here
-gradationsPerCondition = 15;                                               % 
+gradationsPerCondition = 14;                                               % 
 setsPerBlock = 5;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
 stimuliPerBlock = gradationsPerCondition * setsPerBlock;
 catchTrialsPerBlock = 0;                                                  % How many catch trials do you want in a block?
@@ -110,7 +117,7 @@ gaborMatrix = CreateGabor2(gaborSize, sigma, lambda, orientation, phase, amplitu
 
 %Visual Stimuli Parameters
 visualParameters = zeros(3, gradationsPerCondition);          % Matrix to keep track of parameters of each generated visual stimuli.
-visualParameters(1,:) = [.5 .4 .35 .3 .205 .2 .105 .1 .095 .09 .085 .08 .075 .07 0];  % Assigning coherences
+visualParameters(1,:) = GenerateParameters(Vmin,Vmax);  % Assigning coherences
 visualParameters(2,:) = orientation;                           % Assigning orientations. 0->2pi
 visualParameters(3,:) = phase;                                 % Assigning phases. 0->2pi
 
@@ -118,7 +125,7 @@ visualParameters(3,:) = phase;                                 % Assigning phase
 frequency1 = 1000;                                             %To create a ripple, two sine waves are multiplied with each other 
 frequency2 = 200;
 audioParameters = zeros(1, gradationsPerCondition);
-audioParameters(1,:) = [.3 .25 .15 .1 .5 .045 .04 .035 .03 .025 .02 .015 .01 .005 0];
+audioParameters(1,:) = GenerateParameters(Amin, Amax);
 
 %Centering texture in center of window
 xPos = xCenter;
@@ -225,9 +232,9 @@ for block = 1:numberBlocks
     DrawFormattedText(window, 'End of Block! Please Wait...', 'center', 'center', white);
     Screen('Flip', window);
     
-    tempDataCell = trialCell;
+    dataCell = trialCell;
     for i = 1:numberBlocks
-        tempDataCell{3, i} = responseMatrix(i,:);
+        dataCell{3, i} = responseMatrix(i,:);
     end
     numberTrialTypes = size(visualParameters,2);                              % Number of trial types
     %Calculating Psychometric Threshold
@@ -235,7 +242,7 @@ for block = 1:numberBlocks
     numberOccurrences = zeros(numberConditions, numberTrialTypes);
     titles = ['Visual', 'Auditory'];
     
-    figure;
+    %figure;
     for condition = 1:numberConditions
         plots(condition) = subplot(2,1,condition);
     end
@@ -269,6 +276,7 @@ for block = 1:numberBlocks
         
         plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
         title(plots(condition), titles(condition));
+        drawnow;
     end
     
 end
