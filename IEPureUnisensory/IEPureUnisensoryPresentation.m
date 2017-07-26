@@ -8,8 +8,9 @@ clearvars;
 %------------------------
 % Participant Information
 %------------------------
-participant = 'Katie';                                                    %name of the participant.
-filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
+participant = 'Allison';                                                    %name of the participant.
+filepath = uigetdir('C:\Users\lhshaw\Desktop\Psychophysics DATA','Please select where to save your files');
+
 
 Vmin = 0.1;
 Vmax = .15;
@@ -56,7 +57,7 @@ shuffler = randperm(numberBlocks);                                         % Dec
 blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
 
 % Within Block Params & Logic                                              % Enter your within block experiment specific parameters here
-gradationsPerCondition = 14;                                               % 
+gradationsPerCondition = 16;                                               % 
 setsPerBlock = 5;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
 stimuliPerBlock = gradationsPerCondition * setsPerBlock;
 catchTrialsPerBlock = 0;                                                  % How many catch trials do you want in a block?
@@ -117,9 +118,9 @@ gaborMatrix = CreateGabor2(gaborSize, sigma, lambda, orientation, phase, amplitu
 
 %Visual Stimuli Parameters
 visualParameters = zeros(3, gradationsPerCondition);          % Matrix to keep track of parameters of each generated visual stimuli.
-visualParameters(1,:) = GenerateParameters(Vmin,Vmax);  % Assigning coherences
-visualParameters(2,:) = orientation;                           % Assigning orientations. 0->2pi
-visualParameters(3,:) = phase;                                 % Assigning phases. 0->2pi
+visualParameters(1,:) = GenerateParameters(Vmin,Vmax);        % Assigning coherences
+visualParameters(2,:) = orientation;                          % Assigning orientations. 0->2pi
+visualParameters(3,:) = phase;                                % Assigning phases. 0->2pi
 
 %Auditory Stimuli Parameters
 frequency1 = 1000;                                             %To create a ripple, two sine waves are multiplied with each other 
@@ -270,7 +271,7 @@ for block = 1:numberBlocks
                 end
             end
         end
-        yAxis(condition,:) = yAxis(condition,:) ./ numberOccurrences(condition,:);
+        %yAxis(condition,:) = yAxis(condition,:) ./ numberOccurrences(condition,:);
         
         
         
@@ -296,7 +297,7 @@ yAxis = zeros(numberConditions, numberTrialTypes);
 numberOccurrences = zeros(numberConditions, numberTrialTypes);
 titles = {'Visual', 'Auditory'};
 
-figure;
+fig = figure;
 for condition = 1:numberConditions
     plots(condition) = subplot(2,1,condition);
 end 
@@ -331,13 +332,17 @@ for condition = 1:numberConditions
     plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
     title(plots(condition), strjoin(titles(condition)));
 end 
+ax = gca;
+ax.YLim = [0 1];
+savefig(fig, strcat(filepath, '\',participant, '_curve.fig'));
+saveas(fig, strcat(filepath, '\',participant, '_curve.png'));
 %% ------------------
 % SAVING DATA
 %--------------------
 %filesaving
 
-filename = [participant '.mat']; %TIMING CODE: remove '_timing'
+filename = [participant '.mat']; 
 
-save(fullfile(filepath, filename), 'xAxis','yAxis', 'dataCell', 'visualParameters', 'audioParameters');
+save(fullfile(filepath, filename), 'xAxis','yAxis', 'dataCell', 'visualParameters', 'audioParameters', 'participant', 'numberConditions', 'numberTrialTypes','numberBlocks');
 sca;
 Screen('CloseAll')

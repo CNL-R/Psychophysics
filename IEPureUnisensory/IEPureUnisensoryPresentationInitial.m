@@ -8,7 +8,7 @@ clearvars;
 % Participant Information
 %------------------------
 participant = 'Katie';                                                    %name of the participant.
-filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
+filepath = uigetdir('C:\Users\lhshaw\Desktop\Psychophysics DATA','Please select where to save your files');
 
 %--------------------
 % Initial PTB Set-up
@@ -233,7 +233,7 @@ for block = 1:numberBlocks
     %Calculating Psychometric Threshold
     yAxis = zeros(numberConditions, numberTrialTypes);
     numberOccurrences = zeros(numberConditions, numberTrialTypes);
-    titles = ['Visual', 'Auditory'];
+    titles = {'Visual', 'Auditory'};
     
     %figure;
     for condition = 1:numberConditions
@@ -268,7 +268,7 @@ for block = 1:numberBlocks
         
         
         plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
-        title(plots(condition), titles(condition));
+        title(plots(condition), strjoin(titles(condition)));
         drawnow;
     end
 end
@@ -282,13 +282,14 @@ end
 %% ------------------
 % PLOTTING DATA
 %--------------------
+
 numberTrialTypes = size(visualParameters,2);                              % Number of trial types
 %Calculating Psychometric Threshold
 yAxis = zeros(numberConditions, numberTrialTypes);
 numberOccurrences = zeros(numberConditions, numberTrialTypes);
 titles = {'Visual', 'Auditory'};
 
-figure;
+fig = figure;
 for condition = 1:numberConditions
     plots(condition) = subplot(2,1,condition);
 end 
@@ -323,7 +324,12 @@ for condition = 1:numberConditions
     plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
     title(plots(condition), strjoin(titles(condition)));
     
+    
 end 
+ax = gca;
+ax.YLim = [0 1];
+savefig(fig, strcat(filepath, '\',participant, '_initial_curve.fig'));
+saveas(fig, strcat(filepath, '\',participant, '_initial_curve.png'));
 %% ------------------
 % SAVING DATA
 %--------------------
@@ -331,6 +337,6 @@ end
 
 filename = [participant '_initial' '.mat']; 
 
-save(fullfile(filepath, filename), 'xAxis','yAxis', 'dataCell', 'visualParameters', 'audioParameters');
+save(fullfile(filepath, filename), 'xAxis','yAxis', 'dataCell', 'visualParameters', 'audioParameters', 'participant', 'numberConditions', 'numberTrialTypes','numberBlocks');
 sca;
 Screen('CloseAll')
