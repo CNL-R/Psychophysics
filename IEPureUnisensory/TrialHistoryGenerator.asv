@@ -1,6 +1,0 @@
-min = .05;
-max = .2;
-mid = mean([min max]);
-
-A = [mean([mid min]) mean([mid max])];
-B = [mean([A(1) min])]
