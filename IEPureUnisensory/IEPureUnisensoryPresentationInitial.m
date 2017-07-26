@@ -7,14 +7,14 @@ clearvars;
 %------------------------
 % Participant Information
 %------------------------
-participant = 'Allison';                                                    %name of the participant.
+participant = 'Katie';                                                    %name of the participant.
 filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
 
 %--------------------
 % Initial PTB Set-up
 %--------------------
 PsychDefaultSetup(2);                                                       % Setup PTB with some default values
-screenNumber = 1;%max(Screen('Screens'));                                      % Set the screen number to the external secondary monitor if there is one connected
+screenNumber = max(Screen('Screens'));                                      % Set the screen number to the external secondary monitor if there is one connected
 white = WhiteIndex(screenNumber);                                           % Define black, white and grey
 black = BlackIndex(screenNumber);
 grey = white / 2;
@@ -44,7 +44,7 @@ waitForDeviceStart = 1;
 numberConditions = 2;
 blocksPerCondition = 1;
 numberBlocks = numberConditions * blocksPerCondition;
-blockMatrix = [2 1];%repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
+blockMatrix = [1 2];%repmat(1:numberConditions, 1, blocksPerCondition);         % blockMatrix contains block order instructions. 1D matrix with numbers indicating block type
 %shuffler = randperm(numberBlocks);                                         % Declaring shuffler matrix to shuffle blockMatrix
 %blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
 
@@ -256,7 +256,7 @@ for block = 1:numberBlocks
                 for trial = 1:size(dataCell{2,1}, 2)
                     if (dataCell{1, i}(1) == condition) && (dataCell{2, i}(1, trial) == trialTypes(trialType))
                         numberOccurrences(condition, trialType) = numberOccurrences(condition, trialType) + 1;
-                        if dataCell{3, i}(trial) == 1
+                        if dataCell{3, i}(trial) > 0
                             yAxis(condition, trialType) = yAxis(condition, trialType) + 1;
                         end
                     end
@@ -309,7 +309,7 @@ for condition = 1:numberConditions
             for trial = 1:size(dataCell{2,1}, 2)
                 if (dataCell{1, block}(1) == condition) && (dataCell{2, block}(1, trial) == trialTypes(trialType))
                     numberOccurrences(condition, trialType) = numberOccurrences(condition, trialType) + 1;
-                    if dataCell{3, block}(trial) == 1
+                    if dataCell{3, block}(trial) > 0
                         yAxis(condition, trialType) = yAxis(condition, trialType) + 1;
                     end                   
                 end

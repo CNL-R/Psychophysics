@@ -42,6 +42,7 @@ PsychPortAudio('Start', pahandle, 0, startCue, waitForDeviceStart);
 
 for trial = 1:size(VisualCell, 2)
     trial
+    responses = 0;
     timeFrames = round(numel(VisualCell{trial}(:)));
     
     if trial > 1 && trial < size(VisualCell, 2)
@@ -62,7 +63,7 @@ for trial = 1:size(VisualCell, 2)
         %detecting response
         KeyIsDown = KbCheck;
         if KeyIsDown == 1
-            responseMatrix(1, trial) = 1;
+            responseMatrix(1, trial) = responses + 1;
         end
         
         

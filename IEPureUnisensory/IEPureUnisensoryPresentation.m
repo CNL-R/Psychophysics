@@ -8,20 +8,20 @@ clearvars;
 %------------------------
 % Participant Information
 %------------------------
-participant = 'Allison';                                                    %name of the participant.
+participant = 'Katie';                                                    %name of the participant.
 filepath = 'C:\Users\lhshaw\Desktop\Psychophysics DATA';
 
-Vmin = 0.05;
+Vmin = 0.1;
 Vmax = .15;
 
 Amin = 0.05;
-Amax = 0.1         ;
+Amax = 0.1;
 
 %--------------------
 % Initial PTB Set-up
 %--------------------
 PsychDefaultSetup(2);                                                       % Setup PTB with some default values
-screenNumber = 1;%max(Screen('Screens'));                                      % Set the screen number to the external secondary monitor if there is one connected
+screenNumber = max(Screen('Screens'));                                      % Set the screen number to the external secondary monitor if there is one connected
 white = WhiteIndex(screenNumber);                                           % Define black, white and grey
 black = BlackIndex(screenNumber);
 grey = white / 2;
@@ -240,7 +240,7 @@ for block = 1:numberBlocks
     %Calculating Psychometric Threshold
     yAxis = zeros(numberConditions, numberTrialTypes);
     numberOccurrences = zeros(numberConditions, numberTrialTypes);
-    titles = ['Visual', 'Auditory'];
+    titles = {'Visual', 'Auditory'};
     
     %figure;
     for condition = 1:numberConditions
@@ -263,7 +263,7 @@ for block = 1:numberBlocks
                 for trial = 1:size(dataCell{2,1}, 2)
                     if (dataCell{1, i}(1) == condition) && (dataCell{2, i}(1, trial) == trialTypes(trialType))
                         numberOccurrences(condition, trialType) = numberOccurrences(condition, trialType) + 1;
-                        if dataCell{3, i}(trial) == 1
+                        if dataCell{3, i}(trial) > 0
                             yAxis(condition, trialType) = yAxis(condition, trialType) + 1;
                         end
                     end
@@ -275,7 +275,7 @@ for block = 1:numberBlocks
         
         
         plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
-        title(plots(condition), titles(condition));
+        title(plots(condition), strjoin(titles(condition)));
         drawnow;
     end
     
@@ -294,7 +294,7 @@ numberTrialTypes = size(visualParameters,2);                              % Numb
 %Calculating Psychometric Threshold
 yAxis = zeros(numberConditions, numberTrialTypes);
 numberOccurrences = zeros(numberConditions, numberTrialTypes);
-titles = ['Visual', 'Auditory'];
+titles = {'Visual', 'Auditory'};
 
 figure;
 for condition = 1:numberConditions
@@ -317,7 +317,7 @@ for condition = 1:numberConditions
             for trial = 1:size(dataCell{2,1}, 2)
                 if (dataCell{1, block}(1) == condition) && (dataCell{2, block}(1, trial) == trialTypes(trialType))
                     numberOccurrences(condition, trialType) = numberOccurrences(condition, trialType) + 1;
-                    if dataCell{3, block}(trial) == 1
+                    if dataCell{3, block}(trial) > 0
                         yAxis(condition, trialType) = yAxis(condition, trialType) + 1;
                     end                   
                 end
@@ -329,7 +329,7 @@ for condition = 1:numberConditions
   
     
     plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
-    title(plots(condition), titles(condition));
+    title(plots(condition), strjoin(titles(condition)));
 end 
 %% ------------------
 % SAVING DATA

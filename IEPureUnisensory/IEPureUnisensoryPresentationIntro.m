@@ -8,7 +8,7 @@ clearvars;
 % Initial PTB Set-up
 %--------------------
 PsychDefaultSetup(2);                                                       % Setup PTB with some default values
-screenNumber = 1%max(Screen('Screens'));                                      % Set the screen number to the external secondary monitor if there is one connected
+screenNumber = max(Screen('Screens'));                                      % Set the screen number to the external secondary monitor if there is one connected
 white = WhiteIndex(screenNumber);                                           % Define black, white and grey
 black = BlackIndex(screenNumber);
 grey = white / 2;
