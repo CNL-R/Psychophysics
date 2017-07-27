@@ -298,10 +298,10 @@ numberOccurrences = zeros(numberConditions, numberTrialTypes);
 titles = {'Visual', 'Auditory'};
 
 fig = figure;
+hold on;
+
 for condition = 1:numberConditions
     plots(condition) = subplot(2,1,condition);
-end 
-for condition = 1:numberConditions
     %setting xAxis for plot
     if condition == 1
         xAxis(condition,:) = visualParameters(1,:);
@@ -328,8 +328,11 @@ for condition = 1:numberConditions
     yAxis(condition,:) = yAxis(condition,:) ./ numberOccurrences(condition,:);
     
   
-    
-    plot(plots(condition), xAxis(condition,:), yAxis(condition,:), '-o');
+    [param, stat] = sigm_fit(xAxis(condition,:), yAxis(condition,:), [], [], 1);
+    set(gca, 'ylim', [0 1]);
+    hold on;
+    plot(plots(condition), xAxis(condition,:), yAxis(condition,:));
+
     title(plots(condition), strjoin(titles(condition)));
 end 
 ax = gca;

@@ -23,7 +23,7 @@ for i = 1:3
 end
 
 %Generating tripleSequencesPool
-minimum = 35;
+minimum = 19;
 tripleSequencesPool = repmat(tripleSequences, minimum*3, 1);
 numberTripleSequences = size(tripleSequencesPool,1);
 shuffler = randperm(numberTripleSequences);
@@ -82,14 +82,14 @@ plot(xAxis, yAxis);
 
 %% Exporting as .txt file 
 Outdir = uigetdir('C:\Users\achen52\Documents\SMART\triplesequence\','Select Output Directory for the .txts!'); 
-trialsPerBlock = 50;
+trialsPerBlock = 57;
 blocks = fix(size(trialMatrix,2)/trialsPerBlock);
 block = 1;
 %trialMatrix = trialMatrix';
 for block = 1:blocks
     fileID = fopen([Outdir '\block' num2str(block) '.txt'],'w');
     for j = 1:trialsPerBlock
-        fprintf(fileID,'%d\r\n',trialMatrix((block-1)*50 + j));
+        fprintf(fileID,'%d\r\n',trialMatrix((block-1)*trialsPerBlock + j));
     end
     fclose(fileID)
 end
