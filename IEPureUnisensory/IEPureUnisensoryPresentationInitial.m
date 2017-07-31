@@ -7,7 +7,7 @@ clearvars;
 %------------------------
 % Participant Information
 %------------------------
-participant = 'Katie';                                                    %name of the participant.
+participant = 'Eric';                                                    %name of the participant.
 filepath = uigetdir('C:\Users\lhshaw\Desktop\Psychophysics DATA','Please select where to save your files');
 
 %--------------------
