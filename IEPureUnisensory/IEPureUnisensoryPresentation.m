@@ -57,8 +57,8 @@ shuffler = randperm(numberBlocks);                                         % Dec
 blockMatrix = blockMatrix(shuffler);                                      % Using shuffler shuffle blockMatrix
 
 % Within Block Params & Logic                                              % Enter your within block experiment specific parameters here
-gradationsPerCondition = 16;                                               % 
-setsPerBlock = 5;                                                         % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
+gradationsPerCondition = 16;                                            % 
+setsPerBlock = 5;                                                     % How many sets of gradationss per block? i.e 5 sets of 10 gradationss = 50 non-catch trials per block
 stimuliPerBlock = gradationsPerCondition * setsPerBlock;
 catchTrialsPerBlock = 0;                                                  % How many catch trials do you want in a block?
 numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
@@ -122,11 +122,13 @@ visualParameters(1,:) = GenerateParameters(Vmin,Vmax);        % Assigning cohere
 visualParameters(2,:) = orientation;                          % Assigning orientations. 0->2pi
 visualParameters(3,:) = phase;                                % Assigning phases. 0->2pi
 
+
+
 %Auditory Stimuli Parameters
 frequency1 = 1000;                                             %To create a ripple, two sine waves are multiplied with each other 
 frequency2 = 200;
 audioParameters = zeros(1, gradationsPerCondition);
-audioParameters(1,:) = GenerateParameters(Amin, Amax);
+audioParameters(1,:) = GenerateParameters(Amin, Amax);      
 
 %Centering texture in center of window
 xPos = xCenter;
@@ -141,17 +143,21 @@ rectCenter = CenterRectOnPointd(baseRect, xPos, yPos);
  audioTrialMatrix = [repmat(audioParameters, 1, setsPerBlock) zeros(1, catchTrialsPerBlock)];
  trialsPerBlock = size(visualTrialMatrix, 2);
  trialCell = cell(4, numberBlocks);                                                               % Expands the single row matrix into a cell. One matrix for each block.
- responseMatrix = zeros(numberBlocks, trialsPerBlock);
+ responseMatrix = zeros(numberBlocks, trialsPerBlock+3); %+3
  for block = 1:numberBlocks
      shuffler = randperm(trialsPerBlock);                                                         % generates shuffle matrix to randomly permute trial history matrices
      if blockMatrix(block) == 1
          trialCell{1,block} = 1;
          trialCell{2,block} = visualTrialMatrix(:,shuffler);
+         trialCell{2,block} = [.5 .5 .5 trialCell{2,block}(1,:); 0 0 0 trialCell{2,block}(2,:); 0 0 0 trialCell{2,block}(3,:)]; %+3
      elseif blockMatrix(block) == 2
          trialCell{1,block} = 2;
          trialCell{2, block} = audioTrialMatrix(:, shuffler);
+         trialCell{2, block} = [.5 .5 .5 trialCell{2,block}(1,:)]; %+3
      end
  end
+
+audioTrialMatrix = [.5 .5 .5 audioTrialMatrix]; 
 
 for block = 1:numberBlocks
     ['block ' int2str(block)]
@@ -161,7 +167,7 @@ for block = 1:numberBlocks
     visualTrialMatrix = [];                                                                       % Initializing visualTrialMatrix, a 1D array containing textures for the entire block.
     audioTrialMatrix = [];                                                                        % Initializing audioTrialMatrix, a 2xtrials array containing audio information for the entire block
     frameToTrialMatrix = [];                                                               % Initializing frameToTrialMatrix, a 2D array containing response windows for the entire block
-    tempResponseMatrix = zeros(1, trialsPerBlock);
+    tempResponseMatrix = zeros(1, trialsPerBlock + 3); %+3
     [pinkNoiseMatrix, sampleFreq] = audioread('PinkNoise.WAV');
     pinkNoiseMatrix = pinkNoiseMatrix';
     pinkNoiseMatrix(2,:) = pinkNoiseMatrix(1,:);
