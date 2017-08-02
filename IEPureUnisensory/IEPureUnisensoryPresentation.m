@@ -8,11 +8,11 @@ clearvars;
 %------------------------
 % Participant Information
 %------------------------
-participant = 'Eric';                                                    %name of the participant.
+participant = 'Kamy';                                                    %name of the participant.
 filepath = uigetdir('C:\Users\lhshaw\Desktop\Psychophysics DATA','Please select where to save your files');
 
 
-Vmin = 0.1;
+Vmin = 0.05;
 Vmax = .15;
 
 Amin = 0.05;
@@ -149,7 +149,7 @@ rectCenter = CenterRectOnPointd(baseRect, xPos, yPos);
      if blockMatrix(block) == 1
          trialCell{1,block} = 1;
          trialCell{2,block} = visualTrialMatrix(:,shuffler);
-         trialCell{2,block} = [.5 .5 .5 trialCell{2,block}(1,:); 0 0 0 trialCell{2,block}(2,:); 0 0 0 trialCell{2,block}(3,:)]; %+3
+         trialCell{2,block} = [.5 .5 .5 trialCell{2,block}(1,:); 0 0 0 trialCell{2,block}(2,:); 0 0 0 trialCell{2,block}(3,:)]; %  
      elseif blockMatrix(block) == 2
          trialCell{1,block} = 2;
          trialCell{2, block} = audioTrialMatrix(:, shuffler);
