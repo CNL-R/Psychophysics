@@ -26,7 +26,7 @@ screenNumber = max(Screen('Screens'));                                      % Se
 white = WhiteIndex(screenNumber);                                           % Define black, white and grey
 black = BlackIndex(screenNumber);
 grey = white / 2;
-%PsychDebugWindowConfiguration(1, 1);
+PsychDebugWindowConfiguration(1, 1);
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, grey, [], 32, 2, [], [],  kPsychNeed32BPCFloat); % Open the screen
 %Screen('ColorRange', window, 1);
 ifi = Screen('GetFlipInterval', window);                                    %Query the monitor flip interval
@@ -81,7 +81,7 @@ sizeY = 500;
 crossLength = 10;
 crossWidth = 1;
 cross = zeros(sizeX);
-cross(:,:) = 0.5;
+cross(:,:) = 0.5; 
 crossCenter = size(cross, 1) / 2;
 cross = repmat(cross, 1, 1, 3);
 cross(crossCenter - crossWidth:crossCenter+crossWidth,crossCenter - crossLength:crossCenter + crossLength,1) = 1;
