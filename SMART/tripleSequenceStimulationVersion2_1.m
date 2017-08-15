@@ -79,7 +79,7 @@ for i = 1:3
 end
 figure;
 plot(xAxis, yAxis);
-
+drawnow;
 %% Exporting as .txt file 
 Outdir = uigetdir('C:\Users\achen52\Documents\SMART\triplesequence\','Select Output Directory for the .txts!'); 
 trialsPerBlock = 54;
