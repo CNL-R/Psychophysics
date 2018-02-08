@@ -8,8 +8,8 @@ clearvars;
 %------------------------
 % Participant Information
 %------------------------
-participant = 'Kamy';                                                                                       %name of the participant.
-filepath = uigetdir('C:\Users\lhshaw\Desktop\Psychophysics DATA','Please select where to save your files'); %location of where files should be saved
+participant = 'Kamy';                                                    %name of the participant.
+filepath = uigetdir('C:\Users\lhshaw\Desktop\Psychophysics DATA','Please select where to save your files');
 
 
 Vmin = 0.05;
@@ -229,11 +229,12 @@ for block = 1:numberBlocks
         isiDurationAuditory = (fix(isiDuration/1000*refreshRate)) *  (1/refreshRate) * 1000;
         
         if blockMatrix(block) == 1
-            [visualTrialMatrix, frameToTrialMatrix] = AnimateVisualNoise(visualTrialMatrix, noiseTextures, frameToTrialMatrix, trial, isiDuration, ifi);                % Adding visual noise to visualTrialMatrix. Retrieve Response window, the interval during which to tell the presentation function to get responses
-             audioTrialMatrix = AnimateAuditorySilence(audioTrialMatrix, isiDuration, sampleFreq);                                                                      % Adding silence to audioTrialMatrix                                        
+            [visualTrialMatrix, frameToTrialMatrix] = AnimateVisualNoise(visualTrialMatrix, noiseTextures, frameToTrialMatrix, trial, isiDuration, ifi);  % Adding visual noise to visualTrialMatrix. Retrieve Response window, the interval during which to tell the presentation function to get responses
+                                                                                                                                                          % Adding silence to audioTrialMatrix                                        
         elseif blockMatrix(block) == 2
-            [visualTrialMatrix, frameToTrialMatrix] = AnimateFixationCross(visualTrialMatrix, crossTexture, frameToTrialMatrix, trial, isiDuration, ifi);               % Adding fixation cross to visualTrialMatrix
-            [audioTrialMatrix, auditorySampleIndex]= AnimateAuditoryPinkNoise(audioTrialMatrix, pinkNoiseMatrix, isiDurationAuditory, sampleFreq, auditorySampleIndex); % Adding Auditory Noise                
+            [visualTrialMatrix, frameToTrialMatrix] = AnimateFixationCross(visualTrialMatrix, crossTexture, frameToTrialMatrix, trial, isiDuration, ifi);   % Adding fixation cross to visualTrialMatrix
+            [audioTrialMatrix, auditorySampleIndex]= AnimateAuditoryPinkNoise(audioTrialMatrix, pinkNoiseMatrix, isiDurationAuditory, sampleFreq, auditorySampleIndex);                                                           % Adding Auditory Noise          
+          
         end
         visualCell{trial} = visualTrialMatrix;
         audioCell{trial} = audioTrialMatrix;
@@ -241,7 +242,6 @@ for block = 1:numberBlocks
     DrawFormattedText(window, 'Ready to Start Next Block. Press any key to continue...', 'center', 'center', white);
     Screen('Flip', window);
     KbStrokeWait;
-    
     %Playing back the animation that was just generated
     pahandle = PsychPortAudio('Open', [], 1, 1, sampleFreq, nrchannels, [], [], [], []);
     tempResponseMatrix = PlayAVAnimation(visualCell, audioCell, tempResponseMatrix, frameToTrialMatrix, pahandle, volume, window, ifi, rectCenter);
@@ -299,7 +299,7 @@ for block = 1:numberBlocks
     
 end
 
-%Creating dataCell - cell that contains all information about stimuli and responses. Row one - Block Type. Row two - Stimuli Info. Row three - respones.
+%Creating dataCell - cell that contains all information about stimuli and responses. Row one - Blocl Type. row two - Stimuli Info. Row three - respones.
 dataCell = trialCell;
 for block = 1:numberBlocks
     dataCell{3, block} = responseMatrix(block,:);
@@ -308,7 +308,7 @@ end
 %% ------------------
 % PLOTTING DATA
 %--------------------
-numberTrialTypes = size(visualParameters,2);                               % Number of trial types
+numberTrialTypes = size(visualParameters,2);                              % Number of trial types
 %Calculating Psychometric Threshold
 yAxis = zeros(numberConditions, numberTrialTypes);
 numberOccurrences = zeros(numberConditions, numberTrialTypes);
