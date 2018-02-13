@@ -8,7 +8,7 @@ if numel(duration) > 1
 end
 
 [bleh numTextures] = size(blackTexture);
-refreshRate = 1/ifi; %calculating monitor refresh rate
+refreshRate = round(1/ifi); %calculating monitor refresh rate. Assuming, you want it rounded to nearest integer
 previous = 0;
 for frame = 1:fix(refreshRate*duration/1000) %number of frames inside duration of presentation desired
     AnimationTextures = [AnimationTextures blackTexture];

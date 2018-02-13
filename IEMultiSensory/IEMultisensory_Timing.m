@@ -13,11 +13,11 @@ screenNumber = max(Screen('Screens'));                                      % Se
 white = WhiteIndex(screenNumber);                                           % Define black, white and grey
 black = BlackIndex(screenNumber);
 grey = white / 2;
-PsychDebugWindowConfiguration(1, 1);
+%PsychDebugWindowConfiguration(1, 1);
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, grey, [], 32, 2, [], [],  kPsychNeed32BPCFloat); % Open the screen
 %Screen('ColorRange', window, 1);
 ifi = Screen('GetFlipInterval', window);                                    %Query the monitor flip interval
-refreshRate = 1/ifi;
+refreshRate = round(1/ifi);
 Screen('TextFont', window, 'Ariel');                                        %Set the text font and size
 Screen('TextSize', window, 40);
 topPriorityLevel = MaxPriority(window);                                     %Query the maximum priority level
@@ -57,10 +57,10 @@ numberTrialsPerBlock = stimuliPerBlock + catchTrialsPerBlock;
 %-------------------
 %Timing Information
 startDuration = 2000;                                                                                 % Interval before first stimulus of each block in ms
-startDurationAuditory = (fix(startDuration/1000*refreshRate)) * (1/refreshRate) * 1000;               % Keeping startDuration length consistent with frame rate cosntrictions in visual
+startDurationAuditory = (fix(startDuration/1000*refreshRate)) * 1/refreshRate * 1000;               % Keeping startDuration length consistent with frame rate cosntrictions in visual
 isiDurationPossible = [1400 2800];                                                                    % Inter-stimulus-interval duration in ms
 stimulusDuration = 60;                                                                                % Duration stimulus is on screen in ms
-stimulusDurationAuditory = (fix(stimulusDuration/1000*refreshRate)) *  (1/refreshRate) * 1000;        % Keeping stimulusDuration consistent with frame rate constrictions in visual 
+stimulusDurationAuditory = (fix(stimulusDuration/1000*refreshRate)) *  1/refreshRate * 1000;        % Keeping stimulusDuration consistent with frame rate constrictions in visual 
 
 %VISUAL STIMULI 
 %Size of square noise patch
@@ -227,7 +227,7 @@ for block = 1:numberBlocks
         elseif blockMatrix(block) == 2
             %[visualTrialMatrix, frameToTrialMatrix]= AnimateFixationCross(visualTrialMatrix, crossTexture, frameToTrialMatrix, trial, stimulusDuration, ifi);                                                       % Adding fixation cross to visualTrialMatrix
             [visualTrialMatrix, frameToTrialMatrix] = AnimateBlackBackground (visualTrialMatrix, blackTexture, frameToTrialMatrix, trial, startDuration, stimulusDuration);
-            [audioTrialMatrix, auditorySampleIndex]= AnimatePinkNoisyRipple(audioTrialMatrix, pinkNoiseMatrix, frequency1, frequency2, audIntensity, stimulusDurationAuditory, sampleFreq, auditorySampleIndex);       % Adding noisy ripple sound to audioTrialMatrix     
+            %[audioTrialMatrix, auditorySampleIndex]= AnimatePinkNoisyRipple(audioTrialMatrix, pinkNoiseMatrix, frequency1, frequency2, audIntensity, stimulusDurationAuditory, sampleFreq, auditorySampleIndex);       % Adding noisy ripple sound to audioTrialMatrix     
             [audioTrialMatrix, auditorySampleIndex]= AnimateNoiselessRipple(audioTrialMatrix, pinkNoiseMatrix, frequency1, frequency2, audIntensity, stimulusDurationAuditory, sampleFreq, auditorySampleIndex);       % Adding noisy ripple sound to audioTrialMatrix     
         elseif blockMatrix(block) == 3
             [visualTrialMatrix, frameToTrialMatrix] = AnimateNoisyGabor(visualTrialMatrix, gaborMatrix, noiseMatrix, crossLength, crossWidth, frameToTrialMatrix, trial, coherence, stimulusDuration, ifi, window); % Adding noisy gabor stimulus to visualTrialMatrix
@@ -249,17 +249,17 @@ for block = 1:numberBlocks
         if blockMatrix(block) == 1
             %[visualTrialMatrix, frameToTrialMatrix] = AnimateVisualNoise(visualTrialMatrix, noiseTextures, frameToTrialMatrix, trial, isiDuration, ifi);                % Adding visual noise to visualTrialMatrix. Retrieve Response window, the interval during which to tell the presentation function to get responses
             [visualTrialMatrix, frameToTrialMatrix] = AnimateBlackBackground (visualTrialMatrix, blackTexture, frameToTrialMatrix, trial, isiDuration, ifi); 
-            audioTrialMatrix = AnimateAuditorySilence(audioTrialMatrix, isiDuration, sampleFreq);                                                                      % Adding silence to audioTrialMatrix                                        
+            audioTrialMatrix = AnimateAuditorySilence(audioTrialMatrix, isiDurationAuditory, sampleFreq);                                                                      % Adding silence to audioTrialMatrix                                        
         elseif blockMatrix(block) == 2
             %[visualTrialMatrix, frameToTrialMatrix] = AnimateFixationCross(visualTrialMatrix, crossTexture, frameToTrialMatrix, trial, isiDuration, ifi);               % Adding fixation cross to visualTrialMatrix
             [visualTrialMatrix, frameToTrialMatrix] = AnimateBlackBackground (visualTrialMatrix, blackTexture, frameToTrialMatrix, trial, isiDuration, ifi); 
             %[audioTrialMatrix, auditorySampleIndex]= AnimateAuditoryPinkNoise(audioTrialMatrix, pinkNoiseMatrix, isiDurationAuditory, sampleFreq, auditorySampleIndex); % Adding Auditory Noise                
-            audioTrialMatrix = AnimateAuditorySilence(audioTrialMatrix, isiDuration, sampleFreq);                                                                      % Adding silence to audioTrialMatrix                                        
+            audioTrialMatrix = AnimateAuditorySilence(audioTrialMatrix, isiDurationAuditory, sampleFreq);                                                                      % Adding silence to audioTrialMatrix                                        
         elseif blockMatrix(block) == 3
             %[visualTrialMatrix, frameToTrialMatrix] = AnimateVisualNoise(visualTrialMatrix, noiseTextures, frameToTrialMatrix, trial, isiDuration, ifi);                % Adding visual noise to visualTrialMatrix. Retrieve Response window, the interval during which to tell the presentation function to get responses
             [visualTrialMatrix, frameToTrialMatrix] = AnimateBlackBackground (visualTrialMatrix, blackTexture, frameToTrialMatrix, trial, isiDuration, ifi);
             %[audioTrialMatrix, auditorySampleIndex]= AnimateAuditoryPinkNoise(audioTrialMatrix, pinkNoiseMatrix, isiDurationAuditory, sampleFreq, auditorySampleIndex); % Adding Auditory Noise                
-            audioTrialMatrix = AnimateAuditorySilence(audioTrialMatrix, isiDuration, sampleFreq);                                                                      % Adding silence to audioTrialMatrix                                        
+            audioTrialMatrix = AnimateAuditorySilence(audioTrialMatrix, isiDurationAuditory, sampleFreq);                                                                      % Adding silence to audioTrialMatrix                                        
         end
         visualCell{trial} = visualTrialMatrix;
         audioCell{trial} = audioTrialMatrix;

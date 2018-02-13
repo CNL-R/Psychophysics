@@ -12,7 +12,7 @@ if numel(duration) > 1
 end
 
 [x y numNoises] = size(noiseMatrix);
-refreshRate = 1/ifi; %calculating monitor refresh rate
+refreshRate = round(1/ifi); %calculating monitor refresh rate
 for frame = 1:fix(refreshRate*duration/1000) %number of frames inside duration of presentation desired
     noised_gabor = EmbedInNoise2(gaborMatrix, coherence, 0, 0);
     stimulusMatrix = EmbedInEfficientApperature(noised_gabor, noiseMatrix(:, :, round(rand(1) * (numNoises- 1) + 1)));
