@@ -15,7 +15,7 @@ function [AudioMatrix, Duration] = AnimateAuditorySilence(AudioMatrix, Duration,
     Duration = Duration / 1000;
     
   
-    y = zeros(2, fix(SampleRate * Duration));
+    y = zeros(2, round(SampleRate * Duration));
     AudioMatrix = [AudioMatrix y];
    
 end

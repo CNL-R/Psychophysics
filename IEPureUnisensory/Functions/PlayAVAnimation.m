@@ -26,7 +26,7 @@ function [responseMatrix] = PlayAVAnimation(VisualCell, AudioCell, responseMatri
 repetitions = 1;
 startCue = 0;
 waitForDeviceStart = 1;
-sampleFreq = 48000;
+sampleFreq = 44100;
 nrchannels = 2;
 
 
@@ -36,8 +36,9 @@ waitframes = 1;
 
 trial = 1; %trial counter
 
+
 PsychPortAudio('Volume', pahandle, volume);
-PsychPortAudio('FillBuffer', pahandle, [AudioCell{trial}(:,:)  AudioCell{trial + 1}(:,:)]);
+PsychPortAudio('FillBuffer', pahandle, [AudioCell{trial}(:,:)  AudioCell{trial+1}(:,:)]);
 PsychPortAudio('Start', pahandle, 0, startCue, waitForDeviceStart);
 
 for trial = 1:size(VisualCell, 2)
@@ -52,9 +53,9 @@ for trial = 1:size(VisualCell, 2)
     Screen('DrawTexture', window, VisualCell{trial}(1), [], rectCenter, [], [], [], []);
     vbl = Screen('Flip', window);
     
-    for frame = 1:timeFrames - 1
+    for frame = 2:timeFrames
         %Draw fixation point
-        Screen('DrawTexture', window, VisualCell{trial}(frame + 1), [], rectCenter, [], [], [], []);
+        Screen('DrawTexture', window, VisualCell{trial}(frame), [], rectCenter, [], [], [], []);
         
         %Flip to screen
         vbl = Screen('Flip', window, vbl + (waitframes - 0.5) * ifi);

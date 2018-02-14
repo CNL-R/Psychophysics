@@ -25,7 +25,7 @@ function [AudioMatrix, auditorySampleIndex] = AnimatePinkNoisyRipple(AudioMatrix
     
     lastt = size(t,2);
     
-    samples = fix(SampleRate*Duration);
+    samples = round(SampleRate*Duration);
     pinknoiseY = PinkNoiseMatrix(:, auditorySampleIndex: auditorySampleIndex + samples - 1);
 %     maximum = max(pinknoiseY);                                                               %
 %     minimum = min(pinknoiseY);   
