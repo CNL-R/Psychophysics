@@ -27,7 +27,6 @@ rand('seed', sum(100 * clock));                                             %ran
 Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');  % Set up alpha-blending for smooth (anti-aliased) lines
 InitializePsychSound(1);                                                    % Initialize Sounddriver
 nrchannels = 2;                                                             % Number of channels and sample rate
-sampleFreq = 44100;
 volume = 0.5;
 startCue = 0;
 repetitions = 1;
@@ -85,7 +84,7 @@ crossTexture = Screen('MakeTexture', window, cross);
     %This code creates noise by pregenerating a pool of noise images which are sampled randomly 
     %to create the animated noise.  
     %Each noise frame has a fixation cross embedded in the center
-numberNoiseTextures = 100;                                                 %numberNoiseTextures is the size of that pool 
+numberNoiseTextures = 25;                                                 %numberNoiseTextures is the size of that pool 
 noiseMatrix = zeros(sizeY, sizeX, 3, numberNoiseTextures);                 %initializing matrix that will hold the pixel value matrices for the noise
 for i = 1:numberNoiseTextures
     noise = rand(sizeY, sizeX);
