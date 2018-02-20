@@ -1,12 +1,12 @@
 [pinkNoiseMatrix, sampleFreq] = audioread('PinkNoise.WAV');
 
-%Pinknoise ISIs
-index = 1;
+%Pinknoise ISIs\
+index = -
 for i = 0:7
     %2second pnoise normal amplitude
     duration = 1 + i*.200; %in seconds
-    index = index + duration*sampleFreq; 
-    pn = pinkNoiseMatrix(index:index + duration*sampleFreq);
+    index
+    pn = pinkNoiseMatrix(1:duration*sampleFreq);
     filename = ['pnoise' num2str(duration*1000) '.wav'];
     audiowrite(filename,pn,sampleFreq);
 end
